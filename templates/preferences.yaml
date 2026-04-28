@@ -11,13 +11,13 @@ search:
     - 产品经理
     # - 高级产品经理
   experience: 3-5年      # Boss 直聘年限档位（如：1-3年 / 3-5年 / 5-10年 / 10年以上）
-  salary: 20-40K         # 薪资筛选（可选，留空则不过滤）
+  salary: 20-40K         # 薪资筛选（可选，不过滤则注释掉此行：# salary:）
 
 # ── 硬过滤：命中即淘汰，不消耗 LLM ─────────────────────
 hard_filters:
   exclude_companies:     # 公司黑名单（精确名称）
     # - XX 外包
-  exclude_keywords:      # JD 标题或正文含这些词即跳过
+  exclude_keywords:      # JD 标题或正文含这些词即跳过（模糊匹配，命中任一即淘汰）
     - 外包
     - 驻场
     # - 实习
@@ -31,7 +31,7 @@ soft_preferences:
     # - 人工智能
   avoid_industries:      # 不偏好行业（命中减分，但不淘汰）
     # - 教培
-  prefer_company_size:   # 偏好规模档位
+  prefer_company_size:   # 偏好规模档位（A-F，与 hard_filters.min_company_size 定义相同）
     - C
     - D
 
