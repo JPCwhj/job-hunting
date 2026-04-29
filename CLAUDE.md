@@ -17,6 +17,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 三层缓存策略（JD pool / analysis / STAR 预处理）
 - 改写伦理红线（写进 analyzer/tailor 的 prompt）
 
+## Skill 文件约定
+
+- **文件名必须是 `SKILL.md`**（不是 index.md）
+- **开发目录**：`skills/<name>/SKILL.md`
+- **安装方式**：`bash scripts/install.sh` → 复制到 `~/.claude/skills/<name>/SKILL.md`
+- **不需要 plugin 包装**：直接放 `~/.claude/skills/` 即可被 Claude Code 识别
+
 ## Skill 拆分（不要随意调整）
 
 ```
@@ -28,7 +35,7 @@ job-hunt              ← 主：编排 + 缓存管理 + 硬过滤 + 排序 + sho
 
 **硬过滤和排序故意放在主 skill** 而非独立子 skill —— 这两步不调 LLM，独立成 skill 是过度拆分。
 
-**子 skill 不直接暴露给用户**，全部由主 skill 内部调用，避免用户跳过编排逻辑（如 preferences 没配好就直接调 fetcher）。
+**子 skill 不直接暴露给用户**，全部由主 skill 内部调用，避免用户跳过编排逻辑。
 
 ## 改写伦理红线（写进 prompt 的硬约束）
 
@@ -43,10 +50,21 @@ job-hunt              ← 主：编排 + 缓存管理 + 硬过滤 + 排序 + sho
 
 ## 目录约定
 
-- **当前目录优先，`~/.job-hunt/` fallback**——自用方便，朋友/不同求职项目隔离也方便
-- 用户主简历支持 `.md` 或 `.docx`（`.docx` 用现有的 `docx` skill 解析），**内部统一为 MD**
+- **work_dir = Claude 启动时的当前目录（`pwd`）**，无任何 fallback，不再使用 `~/.job-hunt/`
+- 首次运行向导会自动创建 `preferences.yaml`（通过对话收集）和引导放置简历（扫描当前目录）
+- 用户简历支持 `.md` 或 `.docx`（`.docx` 用 `docx` skill 解析），内部统一为 MD
 - 定制简历输出**只 MD**，用户自己转 PDF 投递
-- 完整目录结构见 spec 第 5 节
+- JD 缓存：`<work_dir>/.work/jd-pool/boss-<jobId>.md`
+- 输出：`<work_dir>/output/<run_id>/`
+
+## 风控策略（fetcher 必须遵守）
+
+- **禁止并发**：每次只调一个 bb-browser 工具，严格串行
+- 详情页间隔：**10-15 秒随机**
+- 轮次间隔：**30-60 秒随机**
+- 列表页读取后停留：**5-8 秒**（模拟人类浏览）
+- 详情页数据采集完立即**关闭标签页**
+- 不使用 `bb-browser site boss/*` 适配器（会触发风控）
 
 ## 依赖的外部 skill
 
@@ -55,7 +73,9 @@ job-hunt              ← 主：编排 + 缓存管理 + 硬过滤 + 排序 + sho
 
 ## 当前状态
 
-- ✅ 设计文档已完成
-- ⏳ 实现计划（plan）待写
-- ⏳ 4 个 skill 待开发
-- 项目尚未初始化为 git repo
+- ✅ 设计文档、实现计划已完成
+- ✅ 4 个 skill 全部实现，安装到 `~/.claude/skills/`
+- ✅ 首次运行向导（自动建目录 + 对话配置 + 简历引导）
+- ✅ 风控优化（串行 + 长间隔 + 关标签）
+- ⏳ 用户真实跑完整流程自测中
+- ⏳ PR 待合并：https://github.com/JPCwhj/job-hunting/compare/main...feat/skill-suite
