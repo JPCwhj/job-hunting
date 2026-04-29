@@ -48,13 +48,13 @@ description: Internal sub-skill for job-hunt suite. Generates 3-piece tailored o
 4. 若 analysis 中有「Result 占位」建议，在对应位置插入 `[请填写：<描述>]`
 5. 若有「需用户确认」的推断，加 `[需用户确认]` 标注
 
-输出格式：完整的 Markdown 简历，与主简历结构一致，只改内容不改结构。
+输出格式：完整的 Markdown 简历，与主简历结构一致，只改内容不改结构。「结构」指：一级/二级标题名称及层次、各段落的存在与否（不增删段落）。经历排序调整属于内容改动，需在 changelog.md 的「顺序调整」节中注明。
 
 写入 `<work_dir>/output/<run_id>/tailored/boss-<id>/resume.md`。
 
 ### 1.2 生成 opener.md（HR 开场白）
 
-Boss 直聘 IM 第一条消息，给 HR 发的开场白。严格限制 **200 字以内**（汉字计数）。
+Boss 直聘 IM 第一条消息，给 HR 发的开场白。严格限制 **200 字以内**（计数方式：每个汉字/标点符号计 1 字，英文单词按空格分割每词计 1 字，阿拉伯数字串计 1 字）。
 
 结构：
 1. 称呼 + 简短自我介绍（1 句）
@@ -104,7 +104,7 @@ Boss 直聘 IM 第一条消息，给 HR 发的开场白。严格限制 **200 字
    - 原因：<该经历与 JD 相关性低>
 ```
 
-若无某类改动，省略该节。
+若无某类改动，**完全省略该节**（包括节标题，不输出空节）。
 
 写入 `<work_dir>/output/<run_id>/tailored/boss-<id>/changelog.md`。
 
