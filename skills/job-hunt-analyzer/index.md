@@ -49,7 +49,7 @@ md5 -q <work_dir>/.work/resume.md
 对 `jd_ids` 中每个 JD：
 
 检查 `<work_dir>/.work/jd-pool/boss-<id>.analysis.md` 是否存在且有效：
-- 文件存在 AND JD 的 `fetched_at` 未变（即 JD 内容未更新）AND `resume_hash` 与当前 `resume.md.hash` 一致 → 跳过，复用缓存
+- 文件存在 AND analysis 文件 frontmatter 中的 `jd_fetched_at` 与 JD 文件的 `fetched_at` 一致 AND `resume_hash` 与当前 `resume.md.hash` 一致 → 跳过，复用缓存
 - 否则 → 重新分析
 
 ### 2.1 读取 JD
@@ -100,9 +100,10 @@ md5 -q <work_dir>/.work/resume.md
 从 JD 中提取软性要求（如「优秀的沟通能力」「良好的数据意识」「有 0-1 经验」「能独立推动跨团队项目」）。
 从简历中找对应的具体事例（不是泛泛而谈）。
 
-评分：
+评分（从 0 分开始累加）：
 - JD 强调的软技能在简历中有具体事例支撑：每项 +15（上限 100）
 - JD 提到的加分项（学历/证书/特定背景）命中：+5 每项
+- 最终 soft_fit 分数钳制在 0-100 范围内
 
 ### 2.3 计算偏好契合度（preference_score，0-100）
 
@@ -141,7 +142,7 @@ final_rank_score = round(base_score × hr_factor, 2)
 - ✅ 可建议：调整措辞、重新排序、突出 JD 关注的行动/结果
 - ✅ 可建议：把已有但隐含的信息明确化（加 `[需用户确认]` 标注）
 - ❌ 禁止：建议增加简历中没有的项目或技能
-- ❌ 禁止：编造数字（用户量/增长率/收入），必须用 `[请填写：具体数字]` 占位
+- ❌ 禁止：编造数字（用户量/增长率/收入），必须用 `[请填写：xxx]` 占位
 
 对每段经历，检查：
 - Action 段是否缺少 JD 强调的工作方式（如「跨团队协作」「数据驱动决策」）
@@ -156,6 +157,7 @@ final_rank_score = round(base_score × hr_factor, 2)
 ---
 jd_id: boss-<id>
 analyzed_at: <ISO 8601 时间>
+jd_fetched_at: <从 JD 文件 frontmatter 读取的 fetched_at 值，用于缓存失效检查>
 resume_hash: <当前 resume.md.hash 内容>
 scores:
   total: <total_match，整数>
@@ -204,6 +206,8 @@ final_rank_score: <final_rank_score>
 同时更新 JD 文件 frontmatter 中的 `status.analyzed: true`。
 
 更新 `<work_dir>/output/<run_id>/state.json`：将 `boss-<id>` 加入 `stages.analyzed`，更新 `checkpoint_at`。
+
+若单条 JD 分析过程中出现异常（JD 文件读取失败、字段缺失等），将该 JD ID 加入 `state.stages.analysis_errors`，记录失败原因，继续处理其余 JD，不整体中止。
 
 ## 第 3 步：完成报告
 
