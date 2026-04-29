@@ -57,7 +57,7 @@ bash scripts/install.sh
 ## 前置条件
 
 - [Claude Code](https://claude.ai/code) 已安装
-- [bb-browser](https://github.com/nicobytes/bb-browser) MCP 已配置（用于控制 Chrome）
+- [bb-browser](https://github.com/epiral/bb-browser/blob/main/README.zh-CN.md) MCP 已配置（用于控制 Chrome）
 - Chrome 浏览器已登录 [Boss 直聘](https://www.zhipin.com)
 
 ---
