@@ -199,6 +199,7 @@ status:
 
 写入完成后，立即更新 `<work_dir>/output/<run_id>/state.json`：
 - 将 `boss-<job_id>` 加入 `stages.fetched` 数组
+- 将 `boss-<job_id>` 加入 `stages.filtered_in` 数组（供 analyzer 读取候选集）
 - 更新 `checkpoint_at` 为当前时间
 
 ### 3.7 轮次间隔

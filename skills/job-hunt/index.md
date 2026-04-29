@@ -183,7 +183,7 @@ md5 -q <work_dir>/preferences.yaml
 - 💡 <analysis 文件中的「一句话评估」内容>
 - 🔗 [打开 JD](<url>)
 - 📄 [定制简历](tailored/boss-<id>/resume.md) · 💬 [开场白](tailored/boss-<id>/opener.md) · 📋 [改动](tailored/boss-<id>/changelog.md)
-- ⚠️ 投递前：<从 analysis 的「需用户回填」建议中提取摘要，≤ 1 行；若无则省略此行>
+- ⚠️ 投递前：<从 tailored/boss-<id>/changelog.md 的「⚠️ 需用户回填」节中提取第一条，≤ 1 行；若该节不存在则省略此行>
 
 <重复以上格式直到 Top N>
 

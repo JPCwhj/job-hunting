@@ -29,6 +29,8 @@ description: Internal sub-skill for job-hunt suite. Generates 3-piece tailored o
 
 ## 第 1 步：对每个 JD 依次生成三件套
 
+首先更新 `<work_dir>/output/<run_id>/state.json`，将 `phase` 设为 `"tailoring"`，表示进入定制阶段（便于断点恢复时识别当前进度）。
+
 对 `jd_ids` 中每个 ID，创建目录 `<work_dir>/output/<run_id>/tailored/boss-<id>/`，生成以下三个文件。
 
 若某个 JD 对应的 analysis 文件（`<work_dir>/.work/jd-pool/boss-<id>.analysis.md`）不存在，记录错误并跳过该 JD，继续处理下一个。
