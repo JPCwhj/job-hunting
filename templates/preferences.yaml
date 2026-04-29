@@ -1,0 +1,42 @@
+# ~/.job-hunt/preferences.yaml
+# 求职偏好配置。把这个文件复制到 ~/.job-hunt/ 或你的求职项目目录，按注释填写。
+
+# ── 必填：搜索条件 ──────────────────────────────────────
+search:
+  cities:               # 目标城市（支持多个）
+    - 北京
+    # - 杭州
+    # - 上海
+  keywords:             # 岗位关键词（支持多个，每个独立搜一轮）
+    - 产品经理
+    # - 高级产品经理
+  experience: 3-5年      # Boss 直聘年限档位（如：1-3年 / 3-5年 / 5-10年 / 10年以上）
+  salary: 20-40K         # 薪资筛选（可选，不过滤则注释掉此行：# salary:）
+
+# ── 硬过滤：命中即淘汰，不消耗 LLM ─────────────────────
+hard_filters:
+  exclude_companies:     # 公司黑名单（精确名称）
+    # - XX 外包
+  exclude_keywords:      # JD 标题或正文含这些词即跳过（模糊匹配，命中任一即淘汰）
+    - 外包
+    - 驻场
+    # - 实习
+  min_company_size: C    # 最小规模门槛（A=<20人 B=20-99 C=100-499 D=500-999 E=1000-9999 F=10000+）
+
+# ── 软偏好：影响排序权重，不淘汰 ───────────────────────
+soft_preferences:
+  prefer_industries:     # 偏好行业（命中加分）
+    - 互联网
+    # - SaaS
+    # - 人工智能
+  avoid_industries:      # 不偏好行业（命中减分，但不淘汰）
+    # - 教培
+  prefer_company_size:   # 偏好规模档位（A-F，与 hard_filters.min_company_size 定义相同）
+    - C
+    - D
+
+# ── 排序权重 ────────────────────────────────────────────
+ranking:
+  match_weight: 0.7          # 简历×JD 匹配度的权重（0-1）
+  preference_weight: 0.3     # 偏好契合度的权重（0-1，两者之和应为 1）
+  top_n_for_tailor: 10       # 为前几名 JD 生成定制简历（影响运行时长和 token 消耗）
