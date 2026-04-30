@@ -168,17 +168,32 @@ md5 -q <work_dir>/preferences.yaml
 }
 ```
 
+## Step 2.5：批次大小
+
+（子命令 `fetch` 或全流程时执行，在启动抓取前询问）
+
+询问用户：
+
+「本次每个搜索组合要采集多少个**新**岗位？
+- 建议值：10-20
+- ⚠️ 提醒：每个详情页约需 10-15 秒，组合数 × 批次大小决定总时长
+  （例如：6 个组合 × 15 个 = 最多 90 个详情页，约 15-25 分钟）
+- 直接回车默认使用 10」
+
+等待用户回复，将数值记为 `batch_size`。若用户回复非数字或直接回车，默认使用 `10`。
+
 ## Step 3：抓取（job-hunt-fetcher）
 
 （子命令 `fetch` 或全流程时执行）
 
-告知用户：「开始从 Boss 直聘抓取 JD，预计 15-20 分钟，请保持 Chrome 打开并保持登录状态...」
+告知用户：「开始从 Boss 直聘抓取 JD，预计时间取决于批次大小，请保持 Chrome 打开并保持登录状态...」
 
 调用 Skill 工具，加载 `job-hunt-fetcher` skill，传入以下上下文（在消息中直接提供这些变量的值）：
 - `work_dir`：<解析好的绝对路径>
 - `preferences`：<preferences.yaml 的完整内容>
 - `run_id`：<当前 run_id>
 - `state`：<state.json 的当前内容>
+- `batch_size`：<用户本次指定的数值>
 
 等待 fetcher 完成。重新读取 `<work_dir>/output/<run_id>/state.json` 获取更新后的 state。
 
