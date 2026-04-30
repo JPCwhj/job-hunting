@@ -94,7 +94,7 @@ job-hunt              ← 主入口，编排整条流程
 - 输入：1 个 JD + 1 份分析报告 + 主简历
 - 输出三件套：`resume.md` / `opener.md` / `changelog.md`
 - 严格遵守改写边界（占位符 `[请填写：xxx]` / `[需用户确认]`）
-- 默认只为 Top 10 跑
+- 为排序后前 `top_n_for_tailor` 名跑（默认 10，可在 preferences.yaml 中配置）
 
 ### 3.3 入口设计
 
@@ -125,21 +125,21 @@ preferences.yaml + resume.md (md/docx)
    │job-hunt-fetcher  │ ── bb-browser → Boss 直聘
    └────┬─────────────┘
         ↓
-   jd-pool/*.md（~60 条候选）
+   jd-pool/*.md（累积 JD 池，每批新增 batch_size × 组合数 条）
         ↓
    主 skill: 硬过滤
         ↓
-   ~30 条通过
+   通过过滤的 JD
         ↓
    ┌──────────────────┐
    │job-hunt-analyzer │ ── 首次拆 STAR + 逐条打分
    └────┬─────────────┘
         ↓
-   *.analysis.md（30 份）
+   *.analysis.md
         ↓
    主 skill: 排序（HR 系数 × 公式）
         ↓
-   Top 10
+   Top N（top_n_for_tailor，默认 10）
         ↓
    ┌────────────────┐
    │job-hunt-tailor │ ── 三件套
@@ -154,29 +154,29 @@ preferences.yaml + resume.md (md/docx)
 
 ## 5. 文件与目录结构
 
-### 5.1 全局工作目录（fallback）
+### 5.1 工作目录
 
 ```
-~/.job-hunt/
-├── resume.md / resume.docx        # 主简历（用户提供，二选一）
-├── preferences.yaml               # 求职偏好
-└── .work/
-    ├── resume.md                  # 标准化主简历（docx → md 的工作副本）
-    ├── resume.md.hash             # md5，检测主简历变化
-    ├── resume.star.md             # STAR 预处理缓存
-    ├── preferences.yaml.hash      # md5，检测偏好变化
-    └── jd-pool/                   # 跨 run 的 JD 池（去重核心）
-        ├── boss-abc123def.md
-        └── boss-abc123def.analysis.md
+<work_dir>/                        # = Claude 启动时的 pwd，无任何 fallback
+├── resume.md / resume.docx        # 主简历（用户提供，二选一，文件名不限）
+├── preferences.yaml               # 求职偏好（首次运行向导自动生成）
+├── .work/
+│   ├── resume.md                  # 标准化主简历（docx → md 的工作副本）
+│   ├── resume.md.hash             # md5，检测主简历变化
+│   ├── resume.star.md             # STAR 预处理缓存
+│   ├── preferences.yaml.hash      # md5，检测偏好变化
+│   └── jd-pool/                   # 跨 run 的累积 JD 池（去重核心）
+│       ├── boss-abc123def.md
+│       └── boss-abc123def.analysis.md
+└── output/
+    └── <run-id>/
 ```
 
 ### 5.2 目录解析策略
 
-`./` 当前目录优先 → `~/.job-hunt/` fallback。
+`work_dir` = Claude 启动时所在的当前目录（`pwd`），**不做任何 fallback，不再使用 `~/.job-hunt/`**。
 
-- 当前目录有 `resume.md`/`resume.docx` 和/或 `preferences.yaml` → 当前目录就是工作根
-- 没有 → 回退到 `~/.job-hunt/`
-- 自用方便，朋友/不同求职项目隔离也方便
+首次运行时，向导通过对话自动生成 `preferences.yaml`，并引导用户将简历文件放到当前目录（文件名不限，自动识别 `.md`/`.docx`）。
 
 ### 5.3 简历输入处理
 
@@ -220,9 +220,8 @@ search:
 hard_filters:
   exclude_companies:
     - XX 外包
-  exclude_keywords:                # JD/标题命中即跳过
-    - 外包
-    - 驻场
+  exclude_keywords:                # JD/标题命中即跳过（默认为空，向导中提示用户可选填）
+    # 常见示例：外包、驻场、外派、实习
   min_company_size: D              # A=20人以下 ... E=10000人+
 
 # 软偏好：影响最终排序权重，不淘汰
@@ -248,52 +247,59 @@ ranking:
 
 ## 7. 抓取策略 (fetcher)
 
-### 7.1 数量
+### 7.1 数量与批次
 
-`6 轮搜索 (2 城市 × 3 关键词) × Top 10 = ~60 条候选`
+每次运行启动前，主 skill 询问用户 `batch_size`（每个搜索组合本次新增多少条，建议 10-20）。
+
+实际抓取量 = `batch_size × 组合数`（例：batch_size=15 × 6 组合 = 最多 90 条详情页）。
+
+多次运行会累积 jd-pool，每次只取之前没见过的新 JD，天然不重复。
 
 ### 7.2 两阶段抓取
 
 ```
-阶段 1: 列表页 → 拿基础字段（标题/公司/薪资/规模等）
+阶段 1: 列表页（支持翻页）→ 拿基础字段 → 去重过滤（seen_ids）→ 硬过滤
    ↓
-   主 skill 硬过滤
+   凑够 batch_size 个新 JD 后停止翻页
    ↓
-阶段 2: 通过过滤的（~30 条）才进详情页
+阶段 2: 通过过滤的 JD 才进详情页
    ↓
    完整 JD 内容写入 jd-pool/<jobId>.md
 ```
 
-理由：详情页慢且耗反爬额度。先用列表信息淘汰一半再进详情，时间和风险都减半。
+理由：详情页慢且耗反爬额度。先在列表阶段去重+过滤，只对真正需要的 JD 抓详情。
 
 ### 7.3 节奏（避免反爬）
 
-- 详情页之间随机停顿 **2-5 秒**
-- 列表翻页之间停顿 **3-6 秒**
-- 每轮搜索之间停顿 **5-10 秒**
-- 严格单线程（bb-browser 本来就单浏览器单 tab）
+- **串行铁律**：每次只调用一个 bb-browser 工具，严禁并发
+- 详情页之间随机停顿 **10-15 秒**
+- 列表页浏览停留 **5-8 秒**（翻页前）
+- 每轮搜索组合之间停顿 **30-60 秒**
+- 每个详情页抓完立即关闭标签，只保留主标签页
 
-总耗时估算：**15-20 分钟**完成一轮 60 条抓取。
+总耗时估算：**15-25 分钟**完成一批（batch_size=15 × 6 组合）。
 
 ### 7.4 失败处理
 
 | 场景 | 处理 |
 |---|---|
 | 用户未登录 Boss | 启动时检测，提示用户登录后回来 |
-| 触发滑块 / 验证码 | 暂停抓取，提示用户去浏览器手动过验证 |
-| 详情页加载失败 / 超时 | 跳过，记 `failed.log`，最后汇总 |
-| 单轮搜索 0 结果 | warning 继续 |
+| 触发滑块 / 验证码 | 暂停抓取，提示用户去浏览器手动过验证，失败则跳过该 JD |
+| 详情页加载失败 / 超时 | 跳过，记录到 search.summary.md，最后汇总 |
+| 单个组合 0 结果 | 标记 exhausted，记录，继续下一组合 |
+| 组合已无更多新 JD | 标记 exhausted，报告本次新增数，用已有的继续 |
 | 抓取被中断 | 抓一条立刻写盘，断点续抓时从 `state.json` 恢复 |
 
-**核心原则**：抓一条写一条，绝不在内存堆 60 条最后一次性写。
+**核心原则**：抓一条写一条，绝不在内存里攒完再批量写。
 
 ### 7.5 去重
 
-- **抓取去重 key**：Boss 的 `jobId`（详情页 URL `/job_detail/<jobId>.html` 中提取）
-- **历史去重**：抓列表后立刻查 `jd-pool/<jobId>.md`
-  - 不存在 → 新抓
-  - 存在且 `fetched_at` 在 7 天内 → 复用
-  - 存在但超过 7 天 → 重抓
+- **去重 key**：Boss 的 `jobId`（从详情页 URL `/job_detail/<jobId>.html` 中提取）
+- **全局去重集（seen_ids）**：fetcher 启动时扫描 jd-pool 构建，整个 run 期间实时维护
+  - job_id 在 seen_ids 中 → 跳过，不进详情页
+  - 不在 seen_ids → 加入待处理队列，同时加入 seen_ids（防跨轮次重复）
+- **缓存复用**：jd-pool 中已有且 `fetched_at` 在 7 天内 → 跳过详情页抓取，直接复用
+- **过期重抓**：`fetched_at` 超过 7 天 → 重新抓取详情页并更新文件
 
 ## 8. JD 数据 schema
 
