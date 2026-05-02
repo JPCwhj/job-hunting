@@ -5,6 +5,21 @@ description: 求职助手主入口。上传招聘平台岗位详情页截图（B
 
 # job-hunt 求职助手
 
+## ⚡ 全流程自动执行约束（最高优先级，全程有效）
+
+**仅适用于 `/job-hunt` 无参数的全流程模式。**
+
+用户提供简历 + 说出「开始分析」之后，**剩余所有步骤全部自动连续执行，直到输出 shortlist**。
+
+- **禁止**在任何步骤之间暂停等待用户输入
+- **禁止**在步骤之间询问用户「是否继续」「要不要开始下一步」
+- 每步完成后只允许输出**一行状态通知**（如「✅ 分析完成，开始定制简历…」），输出后**立刻执行下一步，不等待任何回复**
+- 子 skill（fetcher / analyzer / tailor）的返回结果是内部数据，**不向用户展开汇报，直接用于下一步**
+
+违反上述约束 = 流程中断，用户体验完全崩溃。
+
+---
+
 ## 子命令路由
 
 根据用户输入判断执行路径：
@@ -17,6 +32,8 @@ description: 求职助手主入口。上传招聘平台岗位详情页截图（B
 | `/job-hunt tailor` | 执行排序（Step 5）+ 定制（Step 6） |
 | `/job-hunt status` | 输出当前 run 状态（Step 7b） |
 | `/job-hunt clean` | 强制清理所有缓存和产物（Step 8） |
+
+---
 
 ## Step 1：确定工作目录与初始化
 
@@ -51,6 +68,8 @@ description: 求职助手主入口。上传招聘平台岗位详情页截图（B
 
 **子命令特殊处理**：若当前子命令为 `analyze`、`tailor` 或 `status`，在生成新 run_id 之前，先扫描 `<work_dir>/output/` 下已有的 run 目录（格式 `YYYY-MM-DD-HHMM`），若存在则**复用最新一个 run_id**（不创建新目录，读取已有 state.json 继续使用）；若不存在，则按上述流程创建新 run_id。
 
+---
+
 ## Step 2：获取简历
 
 （全流程、fetch、analyze 子命令时执行）
@@ -74,7 +93,9 @@ description: 求职助手主入口。上传招聘平台岗位详情页截图（B
 - **粘贴文本**：直接使用该文本内容
 
 将最终 Markdown 内容写入 `<work_dir>/.work/resume.md`。
-告知用户：「✅ 简历已保存到 <work_dir>/.work/resume.md。」
+告知用户：「✅ 简历已保存。」
+
+---
 
 ## Step 3：截图收集与导入
 
@@ -95,15 +116,17 @@ description: 求职助手主入口。上传招聘平台岗位详情页截图（B
    - `work_dir`：<解析好的绝对路径>
    - `run_id`：<当前 run_id>
    - `screenshots`：<本批次截图>
-2. 等待 fetcher 完成，获取本批次写入的 JD 文件 ID 列表
+2. fetcher 内部完成解析，返回本批次写入的 JD 文件 ID 列表（内部数据，不展开向用户汇报）
 3. 将新增 ID 追加到 `state.json` 的 `stages.fetched`，更新 `checkpoint_at`
-4. 询问用户：「已处理这批截图。还有要补充的吗？发完了告诉我「开始分析」。」
+4. 询问用户：「已解析 <N> 个岗位（共 <累计总数> 个）。还有截图要补充吗？没有就告诉我「开始分析」。」
 
-用户说「开始分析」后退出循环，更新 state.json `phase` 为 `"fetched"`。
+用户说「开始分析」→ 退出循环，更新 state.json `phase` 为 `"fetched"`。
 
-若子命令为 `fetch`，完成后停止，告知用户：「✅ JD 导入完成，共 <N> 个岗位。运行 /job-hunt analyze 开始分析。」并停止。
+若子命令为 `fetch`：告知用户「✅ JD 导入完成，共 <N> 个岗位。运行 /job-hunt analyze 开始分析。」并停止。
 
-**全流程模式**：退出循环后，**不询问用户、不等待确认，立即自动执行 Step 4 → Step 5 → Step 6 → Step 7**，直到输出 shortlist 为止。各步骤之间无需向用户报告进度，只在每步完成时输出一行简短通知后直接继续。
+**【全流程】立即执行 Step 4，不输出任何其他内容，不等待用户。**
+
+---
 
 ## Step 4：分析（job-hunt-analyzer）
 
@@ -116,6 +139,8 @@ description: 求职助手主入口。上传招聘平台岗位详情页截图（B
 
 若列表为空，告知用户「jd-pool 中没有待分析的 JD，请先上传截图。」并停止。
 
+输出：「🔍 开始分析 <N> 个岗位…」
+
 调用 Skill 工具，加载 `job-hunt-analyzer` skill，传入：
 - `work_dir`：<绝对路径>
 - `resume_path`：`<work_dir>/.work/resume.md`
@@ -123,18 +148,25 @@ description: 求职助手主入口。上传招聘平台岗位详情页截图（B
 - `preferences`：`{"soft_preferences": {"prefer_industries": [], "avoid_industries": [], "prefer_company_size": []}, "ranking": {"match_weight": 1.0, "preference_weight": 0.0}}`
 - `run_id`：<当前 run_id>
 
-等待 analyzer 完成。重新读取 state.json。
-更新 state.json `phase` 为 `"analyzed"`。
+analyzer 返回后，更新 state.json `phase` 为 `"analyzed"`。
+
+**【全流程】输出「✅ 分析完成，开始排序和定制…」，立即执行 Step 5，不等待用户。**
+
+---
 
 ## Step 5：排序
 
 （全流程或 tailor 子命令前执行，不调用 LLM）
 
-读取所有 analysis 文件（`<work_dir>/.work/jd-pool/*.analysis.md`），提取每个文件中的 `scores.total` 字段作为 `match_score`，按降序排列。
+读取所有 analysis 文件（`<work_dir>/.work/jd-pool/*.analysis.md`），提取每个文件中的 `scores.total` 字段，按降序排列。
 
 **所有已分析 JD 全部参与排序，不截断。**
 
 将排序结果（JD ID 有序列表）写入 `state.json` 的 `stages.sorted_ids` 字段，同时保留在内存中供 Step 6 直接使用。Step 6 断点续跑时，若内存中无排序结果，从 `state.json.stages.sorted_ids` 读取。
+
+**【全流程】排序完成后立即执行 Step 6，不等待用户。**
+
+---
 
 ## Step 6：定制简历（job-hunt-tailor）
 
@@ -151,8 +183,11 @@ description: 求职助手主入口。上传招聘平台岗位详情页截图（B
 - `jd_ids`：<完整排序后的 JD ID 列表>
 - `run_id`：<当前 run_id>
 
-等待 tailor 完成。
-更新 state.json `phase` 为 `"tailored"`。
+tailor 返回后，更新 state.json `phase` 为 `"tailored"`。
+
+**【全流程】输出「✅ 定制简历完成，正在生成 shortlist…」，立即执行 Step 7，不等待用户。**
+
+---
 
 ## Step 7：生成 shortlist.md
 
@@ -182,7 +217,9 @@ description: 求职助手主入口。上传招聘平台岗位详情页截图（B
 ```
 
 更新 state.json `phase` 为 `"done"`。
-告知用户：「✅ 完成！shortlist 已保存到 <work_dir>/output/<run_id>/shortlist.md，并在上方展示。」
+告知用户：「✅ 全部完成！shortlist 已保存到 <work_dir>/output/<run_id>/shortlist.md，并在上方展示。」
+
+---
 
 ## Step 7b（status 子命令）：输出运行状态
 
@@ -205,6 +242,8 @@ Run ID：<run_id>
 ```
 
 若无任何 run 记录，告知用户「尚未运行过 /job-hunt，请先运行完整流程。」
+
+---
 
 ## Step 8（clean 子命令）：强制清理
 

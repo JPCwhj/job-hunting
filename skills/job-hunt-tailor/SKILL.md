@@ -131,4 +131,4 @@ description: Internal sub-skill for job-hunt suite. Performs STAR alignment anal
 
 ## 第 2 步：完成
 
-三件套全部完成后，将 `state.json` 的 `phase` 设为 `"tailored"`。告知调用方完成的 JD 数量及产物根路径。
+三件套全部完成后，将 `state.json` 的 `phase` 设为 `"tailored"`，向调用方返回完成的 JD 数量及产物根路径（内部数据，不向用户额外输出）。

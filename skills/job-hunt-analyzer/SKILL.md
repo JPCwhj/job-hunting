@@ -161,11 +161,9 @@ scores:
 
 若单条 JD 分析出现异常（文件读取失败、字段缺失等），将该 ID 加入 `state.stages.analysis_errors`，记录失败原因，继续处理其余 JD，不整体中止。
 
-## 第 3 步：完成报告
+## 第 3 步：完成
 
-所有 JD 处理完成后，将 `state.json` 的 `phase` 设为 `"analyzed"`。
-
-告知调用方：
+所有 JD 处理完成后，将 `state.json` 的 `phase` 设为 `"analyzed"`，向调用方返回以下内部数据（不向用户额外输出）：
 - 新分析完成的 JD 数量
 - 复用缓存的数量
 - 分析失败的 JD（若有）
