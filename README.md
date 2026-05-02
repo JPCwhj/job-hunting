@@ -46,7 +46,7 @@ bash scripts/install.sh
 | 命令 | 作用 |
 |---|---|
 | `/job-hunt` | 完整流程（截图导入 → 分析 → 生成三件套 → shortlist） |
-| `/job-hunt import` | 只导入截图（解析 JD 到 jd-pool） |
+| `/job-hunt fetch` | 只导入截图（解析 JD 到 jd-pool） |
 | `/job-hunt analyze` | 只做匹配分析（基于已有 jd-pool） |
 | `/job-hunt tailor` | 排序 + 生成定制简历 |
 | `/job-hunt status` | 查看当前进度 |
