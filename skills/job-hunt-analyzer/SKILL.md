@@ -1,17 +1,17 @@
 ---
 name: job-hunt-analyzer
-description: Internal sub-skill for job-hunt suite. Performs STAR decomposition of resume, scores JD-resume match across 4 dimensions, and generates tailoring suggestions. Do NOT invoke directly — use the job-hunt main skill instead.
+description: Internal sub-skill for job-hunt suite. Performs STAR decomposition of resume and scores JD-resume match across 4 dimensions. Does NOT generate tailoring suggestions (handled by tailor). Do NOT invoke directly — use the job-hunt main skill instead.
 ---
 
 # job-hunt-analyzer
 
-你是 job-hunt 套件的分析组件。职责：对每条 JD 与用户简历进行多维度匹配分析，生成 STAR 修改建议。**你只生成"建议"，绝不直接改写简历。**
+你是 job-hunt 套件的分析组件。职责：对每条 JD 与用户简历进行多维度匹配评分。**你只输出评分和分析，不生成改写建议（改写建议由 tailor 负责）。**
 
 调用方传入：
 - `work_dir`：工作根目录
 - `resume_path`：标准化简历路径（`<work_dir>/.work/resume.md`）
-- `jd_ids`：待分析的 JD ID 列表（均已通过硬过滤）
-- `preferences`：preferences.yaml 内容（用于计算偏好契合度）
+- `jd_ids`：待分析的 JD ID 列表
+- `preferences`：偏好配置（当前版本传入空 stub，评分不使用偏好权重）
 - `run_id`：本次 run ID
 
 ## 第 1 步：简历 STAR 预处理
@@ -46,29 +46,34 @@ md5 -q <work_dir>/.work/resume.md
 
 ## 第 2 步：逐条 JD 分析
 
-对 `jd_ids` 中每个 JD：
+记录待分析总数 `total = len(jd_ids)`，计数器 `n = 0`。
 
-检查 `<work_dir>/.work/jd-pool/boss-<id>.analysis.md` 是否存在且有效：
-- 文件存在 AND analysis 文件 frontmatter 中的 `jd_fetched_at` 与 JD 文件的 `fetched_at` 一致 AND `resume_hash` 与当前 `resume.md.hash` 一致 → 跳过，复用缓存
-- 否则 → 重新分析
+对 `jd_ids` 中每个 JD ID（记为 `<id>`）：
+
+**缓存检查**：读取 `<work_dir>/.work/jd-pool/<id>.analysis.md`（若存在），校验：
+- frontmatter 中 `jd_fetched_at` 与 JD 文件的 `fetched_at` 一致
+- `resume_hash` 与当前 `resume.md.hash` 一致
+
+两项均满足 → 跳过，复用缓存，`n++`，输出：`⚡ <公司名>·<职位名> — 复用缓存（<n>/<total>）`，继续下一条。
+
+否则 → 重新分析：
 
 ### 2.1 读取 JD
 
-读取 `<work_dir>/.work/jd-pool/boss-<id>.md` 全文。
+读取 `<work_dir>/.work/jd-pool/<id>.md` 全文。
 
 ### 2.2 计算 4 维匹配度（0-100 分）
 
 **维度 1：硬技能匹配（hard_skills）**
 
-从 JD 的「任职要求」提取所有技能/工具关键词（如：SQL、Python、Axure、数据分析等）。
-与 resume.star.md 中所有段落的「技能关键词」对比。
+从 JD「任职要求」提取所有技能/工具关键词。与 `resume.star.md` 中所有段落的「技能关键词」对比。
 
 评分规则：
 - JD 要求的技能中，简历命中率 × 100 = 基础分
-- JD 中标注为「加分项」的技能，命中每项 +5（不超过总分上限 100）
+- JD 中标注为「加分项」的技能，命中每项 +5（不超过 100）
 - 简历有但 JD 没要求的技能不加分
 
-在 analysis 文件中记录：
+记录：
 ```
 ✅ 命中：[技能列表]
 ⚠️ 缺失（JD 强调）：[技能列表]
@@ -77,101 +82,59 @@ md5 -q <work_dir>/.work/resume.md
 
 **维度 2：经验深度（experience_depth）**
 
-对比 JD 要求的年限 vs 简历实际年限：
-- 差距在 ±1 年内：90-100 分
-- 简历比要求多 1-3 年：85-95 分（经验充足但可能定级问题）
+对比 JD 要求年限 vs 简历实际年限：
+- 差距 ±1 年内：90-100 分
+- 简历比要求多 1-3 年：85-95 分
 - 简历比要求少 1 年：70-80 分
 - 简历比要求少 2 年：50-65 分
 - 差距超过 2 年：30-50 分
 
-同时考察项目复杂度：JD 描述的项目规模 vs 简历项目规模（相近 +5，明显低于 -10）。
+同时考察项目复杂度：相近 +5，明显低于 -10。
 
 **维度 3：行业/领域契合（domain_fit）**
 
-对比 JD 公司的行业 + JD 描述的业务场景 vs 简历的工作行业 + 项目背景：
+对比 JD 行业 + 业务场景 vs 简历工作行业 + 项目背景：
 - 完全匹配（同行业同场景）：90-100
 - 行业相近（如同属 B 端 SaaS）：75-90
 - 行业不同但技能可迁移：60-75
-- 行业差异大，技能迁移难度高：40-60
+- 行业差异大，迁移难度高：40-60
 - 几乎无关联：20-40
 
 **维度 4：软性匹配（soft_fit）**
 
-从 JD 中提取软性要求（如「优秀的沟通能力」「良好的数据意识」「有 0-1 经验」「能独立推动跨团队项目」）。
-从简历中找对应的具体事例（不是泛泛而谈）。
+从 JD 提取软性要求（如「优秀的沟通能力」「有 0-1 经验」「能独立推动跨团队项目」），从简历找对应具体事例。
 
 评分（从 0 分开始累加）：
 - JD 强调的软技能在简历中有具体事例支撑：每项 +15（上限 100）
 - JD 提到的加分项（学历/证书/特定背景）命中：+5 每项
-- 最终 soft_fit 分数钳制在 0-100 范围内
+- 钳制在 0-100 范围内
 
-### 2.3 计算偏好契合度（preference_score，0-100）
-
-根据 JD frontmatter 信息与 `preferences.soft_preferences` 对比：
-
-- `prefer_industries` 命中：+30（基础 50 分）
-- `avoid_industries` 命中：-30（基础 50 分）
-- `prefer_company_size` 命中：+20（基础 50 分）
-- 无偏好字段匹配：50 分（中性）
-
-最终 preference_score 钳制在 0-100 范围内。
-
-### 2.4 计算最终排序分
+### 2.3 计算总分
 
 ```
-total_match = (hard_skills + experience_depth + domain_fit + soft_fit) / 4
-
-hr_factor:
-  "刚刚活跃" 或 "今日活跃" → 1.0
-  "3天内活跃" → 0.9
-  "本周活跃" → 0.75
-  其他 / 空 → 0.5
-
-match_weight = preferences.ranking.match_weight  （默认 0.7）
-pref_weight = preferences.ranking.preference_weight  （默认 0.3）
-
-base_score = total_match × match_weight + preference_score × pref_weight
-final_rank_score = round(base_score × hr_factor, 2)
+scores.total = round((hard_skills + experience_depth + domain_fit + soft_fit) / 4)
 ```
 
-### 2.5 生成 STAR 修改建议
+### 2.4 写入 analysis 文件
 
-对照 JD 需求 和 resume.star.md 的每段经历，找出改写机会：
-
-**规则（严格遵守）：**
-- ✅ 可建议：调整措辞、重新排序、突出 JD 关注的行动/结果
-- ✅ 可建议：把已有但隐含的信息明确化（加 `[需用户确认]` 标注）
-- ❌ 禁止：建议增加简历中没有的项目或技能
-- ❌ 禁止：编造数字（用户量/增长率/收入），必须用 `[请填写：xxx]` 占位
-
-对每段经历，检查：
-- Action 段是否缺少 JD 强调的工作方式（如「跨团队协作」「数据驱动决策」）
-- Result 段是否缺少量化指标（⚠️ 标注项）
-- 是否有经历段可以「前移/后移」来更好对齐 JD 优先关注点
-
-### 2.6 写入 analysis 文件
-
-写入 `<work_dir>/.work/jd-pool/boss-<id>.analysis.md`：
+写入 `<work_dir>/.work/jd-pool/<id>.analysis.md`：
 
 ```markdown
 ---
-jd_id: boss-<id>
+jd_id: <id>
 analyzed_at: <ISO 8601 时间>
-jd_fetched_at: <从 JD 文件 frontmatter 读取的 fetched_at 值，用于缓存失效检查>
+jd_fetched_at: <从 JD 文件 frontmatter 读取的 fetched_at>
 resume_hash: <当前 resume.md.hash 内容>
 scores:
-  total: <total_match，整数>
+  total: <整数>
   hard_skills: <分数>
   experience_depth: <分数>
   domain_fit: <分数>
   soft_fit: <分数>
-preference_score: <preference_score>
-hr_factor: <hr_factor>
-final_rank_score: <final_rank_score>
 ---
 
 ## 一句话评估
-<30 字以内，说明最核心的优势和最主要的差距，以及是否值得投递>
+<30 字以内，说明核心优势、主要差距、是否值得投递>
 
 ## 维度分析
 
@@ -188,32 +151,21 @@ final_rank_score: <final_rank_score>
 
 ### 软性匹配 <分数>/100
 <列出 JD 软性要求 vs 简历是否有具体事例>
-
-## STAR 修改建议
-
-### [经历1名称]
-- **Action 补充建议**：<若 JD 强调某种工作方式，建议在此经历的 Action 段补充具体描述；若已有则跳过>
-- **Result 占位**：`[请填写：<具体指标类型，如月活用户数/营收增长率>]`（若原简历该经历有数字则不需要）
-- **改写方向**：<1-2 句改写建议，仅基于已有内容>
-
-### [经历2名称]
-...
-
-## 顺序调整建议
-<若某段经历更符合 JD，建议将其上移至更醒目位置，说明原因>
 ```
 
 同时更新 JD 文件 frontmatter 中的 `status.analyzed: true`。
 
-更新 `<work_dir>/output/<run_id>/state.json`：将 `boss-<id>` 加入 `stages.analyzed`，更新 `checkpoint_at`。
+`n++`，将 `<id>` 加入 `state.json` 的 `stages.analyzed`，更新 `checkpoint_at`。
 
-若单条 JD 分析过程中出现异常（JD 文件读取失败、字段缺失等），将该 JD ID 加入 `state.stages.analysis_errors`，记录失败原因，继续处理其余 JD，不整体中止。
+**输出进度**：`✅ <company.name>·<title> — 匹配度 <scores.total> 分（<n>/<total> 完成）`
+
+若单条 JD 分析出现异常（文件读取失败、字段缺失等），将该 ID 加入 `state.stages.analysis_errors`，记录失败原因，继续处理其余 JD，不整体中止。
 
 ## 第 3 步：完成报告
 
-所有 JD 分析完成后，更新 `<work_dir>/output/<run_id>/state.json`，将 `phase` 设为 `"analyzed"`。
+所有 JD 处理完成后，将 `state.json` 的 `phase` 设为 `"analyzed"`。
 
 告知调用方：
-- 分析完成的 JD 数量
-- 使用缓存复用的数量
+- 新分析完成的 JD 数量
+- 复用缓存的数量
 - 分析失败的 JD（若有）
