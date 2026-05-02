@@ -44,7 +44,7 @@ description: Internal sub-skill for job-hunt suite. Parses JD information from u
 用户继续发截图 → 追加到当前组 → 重复询问。
 用户说「完整了」→ 进入 Step 2。
 
-**只有 1 张截图且内容完整明确时**，跳过确认直接进入 Step 2。
+**只有 1 张截图，且至少能识别出 `title`、`company.name`、`job_description` 三个字段时**，跳过确认直接进入 Step 2。
 
 ## Step 2：解析并写入 jd-pool
 
@@ -85,6 +85,9 @@ company_intro: 公司介绍全文（无则 null）
 |---|---|
 | 能提取到公司名 + 职位名 | `公司名-职位名-YYYYMMDDTHHmm.md` |
 | 提取不到任何名称 | `screenshot-YYYYMMDDTHHmm.md` |
+
+> 注：截图来源的 JD 无法提取 Boss 直聘原始 jobId，因此不使用 `boss-<jobId>` 命名。
+> 主 skill 扫描 jd-pool 时通过 `status.analyzed: false` 识别待分析文件，不依赖文件名模式。
 
 写入路径：`<work_dir>/.work/jd-pool/<文件名>`
 
@@ -149,6 +152,7 @@ status:
 ```
 
 向调用方报告本批次写入的所有文件 ID（`id` 字段值）列表。
+（主 skill 将通过这份返回列表更新 state.json，无需通过 run_id 反查文件；frontmatter 中的 `run_id` 字段仅作记录用途。）
 
 ## 异常处理
 
