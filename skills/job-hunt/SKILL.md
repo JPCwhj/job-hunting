@@ -124,7 +124,9 @@ description: 求职助手主入口。上传招聘平台岗位详情页截图（B
 
 若子命令为 `fetch`：告知用户「✅ JD 导入完成，共 <N> 个岗位。运行 /job-hunt analyze 开始分析。」并停止。
 
-**【全流程】立即执行 Step 4，不输出任何其他内容，不等待用户。**
+**【全流程】输出且仅输出以下这一条消息，之后全程不再输出任何过渡文本，直到最终 shortlist：**
+「收到，共 <N> 个岗位，开始全自动分析流程，请稍候…」
+输出完毕后，立即执行 Step 4。
 
 ---
 
@@ -139,8 +141,6 @@ description: 求职助手主入口。上传招聘平台岗位详情页截图（B
 
 若列表为空，告知用户「jd-pool 中没有待分析的 JD，请先上传截图。」并停止。
 
-输出：「🔍 开始分析 <N> 个岗位…」
-
 调用 Skill 工具，加载 `job-hunt-analyzer` skill，传入：
 - `work_dir`：<绝对路径>
 - `resume_path`：`<work_dir>/.work/resume.md`
@@ -150,7 +150,7 @@ description: 求职助手主入口。上传招聘平台岗位详情页截图（B
 
 analyzer 返回后，更新 state.json `phase` 为 `"analyzed"`。
 
-**【全流程】输出「✅ 分析完成，开始排序和定制…」，立即执行 Step 5，不等待用户。**
+**【全流程】不输出任何文本，立即执行 Step 5。**
 
 ---
 
@@ -185,7 +185,7 @@ analyzer 返回后，更新 state.json `phase` 为 `"analyzed"`。
 
 tailor 返回后，更新 state.json `phase` 为 `"tailored"`。
 
-**【全流程】输出「✅ 定制简历完成，正在生成 shortlist…」，立即执行 Step 7，不等待用户。**
+**【全流程】不输出任何文本，立即执行 Step 7。**
 
 ---
 
