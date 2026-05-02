@@ -17,13 +17,11 @@
 
 ## 整体架构
 
-四个 skill 结构不变，改动集中在 `job-hunt-fetcher` 内部和 `job-hunt` 主 skill 的编排逻辑：
-
 ```
 job-hunt              ← 主：编排（大幅简化）
 ├── job-hunt-fetcher  ← ⚡ 内部完全重写：截图解析
-├── job-hunt-analyzer ← 不动
-└── job-hunt-tailor   ← 不动
+├── job-hunt-analyzer ← 修改：修复路径 bug、简化评分、移除 STAR 改写建议、加进度输出
+└── job-hunt-tailor   ← 修改：修复路径 bug、新增 Step 1.0 STAR 对齐分析、加进度输出
 ```
 
 ---
@@ -56,25 +54,25 @@ job-hunt              ← 主：编排（大幅简化）
 
 ### 新增步骤（替换原抓取环节）
 
-**Step 1：获取简历**
+**Step 2：获取简历**
 
-提示用户提供简历，支持三种方式（不做平台区分，均可用）：
+提示用户提供简历，支持三种方式：
 - 发送简历文件（.md 或 .docx）
 - 告知本地文件路径
 - 直接将简历文本粘贴到消息框
 
 收到后，`.docx` 用 `docx` skill 解析，统一转为 Markdown 供后续使用。
 
-**Step 2：收集截图**
+**Step 3：收集截图（子命令为 `fetch`，非 `import`）**
 
 ```
-请上传你感兴趣的岗位截图（Boss 直聘详情页）。
+请上传你感兴趣的岗位截图（Boss直聘、智联招聘、前程无忧、猎聘等均可）。
 可以一次发多张，也可以分批发送。
 截图发完后告诉我「开始分析」。
 ```
 
-每次收到截图，调用 `job-hunt-fetcher` 处理，处理完继续等待。
-用户说「开始分析」后，进入 analyzer 流程。
+每次收到截图，调用 `job-hunt-fetcher` 处理，新增 ID 写入 `state.json` 的 `stages.fetched`。
+用户说「开始分析」后，**不输出任何文字，直接调用 Skill 工具进入 Step 4**（见下方"全流程自动化"节）。
 
 ### 保留
 - 调 analyzer、tailor 的编排逻辑
@@ -262,10 +260,32 @@ shortlist 格式：
 
 ---
 
+## analyzer 变更
+
+相较本 spec 初版，analyzer 有以下实际改动：
+
+- **路径 bug 修复**：原来读写 `jd-pool/boss-<id>.md`，实际文件名为 `公司名-职位名-时间戳.md`，`id` 字段直接对应文件名（去掉 `.md`），修复后用 `<id>` 代入全路径
+- **移除 Step 2.5 STAR 改写建议**：analyzer 职责缩减为"只输出评分和维度分析"，改写建议统一挪入 tailor
+- **评分简化**：`scores.total = round((hard_skills + experience_depth + domain_fit + soft_fit) / 4)`，去掉 hr_factor 和 preference_score
+- **逐 JD 进度输出**：`✅ 公司名·职位名 — 匹配度 XX 分（n/total 完成）` / `⚡ 复用缓存（n/total）`
+
+## tailor 变更
+
+- **路径 bug 修复**：同 analyzer，全部用 `<id>` 代入路径
+- **新增 Step 1.0 STAR 对齐分析**（内部推理，不写文件）：读取 resume.md / resume.star.md / JD / analysis，内部形成改写方案（经历排序、Action 补充、Result 缺口、隐含信息、弱化项），结论直接用于 Step 1.1 生成 resume.md
+- **输出目录**：`output/<run_id>/tailored/<id>/`（非 `boss-<id>`）
+- **逐 JD 进度输出**：`✅ 公司名·职位名 三件套完成（n/total）`
+
+## 全流程自动化约束
+
+用户说「开始分析」后，Step 4（analyzer）→ Step 5（排序）→ Step 6（tailor）→ Step 7（shortlist）必须全部自动连续执行，**主 skill 不得在任何步骤之间输出文字**。
+
+原因：Claude Code 的 turn 模型中，**输出文字 = turn 结束 = 等待用户输入**。任何步骤间的文字提示（包括"状态通知"）都会中断流程。唯一例外是子 skill 内部的逐 JD 进度行——这些是工具执行输出，不会结束 turn。
+
+正确实现：每步结束后直接以 `Skill` 工具调用衔接下一步，零文字过渡。
+
 ## 不变的部分
 
-- `job-hunt-analyzer/SKILL.md`：完全不动
-- `job-hunt-tailor/SKILL.md`：完全不动
-- jd-pool 文件格式：analyzer 和 tailor 读取的字段结构不变
+- jd-pool 文件格式：字段结构不变
 - `output/<run_id>/` 目录结构：不变
 - `docx` skill 依赖：保留（用于解析 .docx 简历）

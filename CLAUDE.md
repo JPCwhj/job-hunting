@@ -66,14 +66,36 @@ job-hunt              ← 主：编排 + 缓存管理 + 排序 + shortlist
 - 字段缺失：置 null，不中断写入
 - 无 bb-browser 依赖，无防风控延迟
 
+## 全流程自动化：关键约束
+
+**这是这个项目里最容易踩的坑，务必理解清楚。**
+
+Claude Code 的运行模型：
+- **输出文字 = turn 结束 = 等用户回复**
+- **调用工具（Bash/Skill/Read/Write）= turn 继续**，可以接着调用下一个工具
+
+因此，任何写在步骤之间的文字提示（如"✅ 分析完成，开始定制简历…"）都会导致流程停住，哪怕指令后面写了"立即执行下一步"也无效——文字已经输出，turn 已经结束。
+
+**正确的做法：Step 4 → Step 7 之间，主 skill 不得输出任何文字。** 每步结束后直接调用下一步的工具（Skill call），零文字过渡。
+
+唯一可见的进度反馈来自子 skill 内部的进度行（如"✅ 字节跳动·产品经理 — 匹配度78分（1/2）"）——这些是工具执行的输出，不会结束 turn，是安全的。
+
+修改主 skill 时：
+- ❌ 绝不在 Step 4-7 之间写任何文字，包括状态通知
+- ✅ 每步直接以工具调用衔接下一步
+
 ## 依赖的外部 skill
 
 - `docx`（解析用户提供的 .docx 简历）
 
 ## 当前状态
 
-- ✅ 设计文档、实现计划已完成（feat/screenshot-input 分支）
-- ✅ fetcher 改为截图解析，去掉硬过滤
+- ✅ 设计文档、实现计划已完成
+- ✅ fetcher 改为截图解析，支持全平台，去掉 bb-browser 依赖
 - ✅ 输入流程简化：截图 + 简历文本，无需配置文件
 - ✅ 排序简化为 match score，shortlist 双路输出
-- ⏳ 用户真实跑完整流程自测中
+- ✅ subcommand 统一为 `fetch`（非 `import`），state.json 对应字段为 `fetched`
+- ✅ analyzer/tailor 路径 bug 修复（`boss-<id>` → `<id>`）
+- ✅ STAR 对齐分析移入 tailor Step 1.0（analyzer 只输出评分，不生成改写建议）
+- ✅ 全流程自动化修复：Step 4-7 之间无文字输出，纯工具调用链
+- ✅ analyzer/tailor 均有逐 JD 进度输出
