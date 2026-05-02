@@ -12,8 +12,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 任何代码或细节实现之前，**必读** [docs/superpowers/specs/2026-04-29-job-hunt-skill-design.md](docs/superpowers/specs/2026-04-29-job-hunt-skill-design.md)。这份 spec 定义了：
 - 4 个 skill 的职责边界（不要跨界）
-- 完整数据流（从 preferences.yaml 到 shortlist.md）
-- 三处关键 schema：`preferences.yaml` / JD frontmatter / analysis frontmatter
+- 完整数据流（截图输入 → JD 解析 → shortlist.md）
+- 三处关键 schema：JD frontmatter / analysis frontmatter / shortlist 条目
 - 三层缓存策略（JD pool / analysis / STAR 预处理）
 - 改写伦理红线（写进 analyzer/tailor 的 prompt）
 
@@ -28,7 +28,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```
 job-hunt              ← 主：编排 + 缓存管理 + 硬过滤 + 排序 + shortlist
-├── job-hunt-fetcher  ← Boss 抓取（bb-browser），不做任何过滤/分析/改写
+├── job-hunt-fetcher  ← 截图解析，提取 JD 结构化数据，不做过滤/分析/改写
 ├── job-hunt-analyzer ← STAR 拆解 + 4 维匹配度，不直接改写简历（只生成"建议"）
 └── job-hunt-tailor   ← 定制简历三件套 (resume/opener/changelog)，严守伦理边界
 ```
@@ -51,31 +51,27 @@ job-hunt              ← 主：编排 + 缓存管理 + 硬过滤 + 排序 + sho
 ## 目录约定
 
 - **work_dir = Claude 启动时的当前目录（`pwd`）**，无任何 fallback，不再使用 `~/.job-hunt/`
-- 首次运行向导会自动创建 `preferences.yaml`（通过对话收集）和引导放置简历（扫描当前目录）
 - 用户简历支持 `.md` 或 `.docx`（`.docx` 用 `docx` skill 解析），内部统一为 MD
 - 定制简历输出**只 MD**，用户自己转 PDF 投递
 - JD 缓存：`<work_dir>/.work/jd-pool/boss-<jobId>.md`
 - 输出：`<work_dir>/output/<run_id>/`
 
-## 风控策略（fetcher 必须遵守）
+## fetcher 截图解析约定
 
-- **禁止并发**：每次只调一个 bb-browser 工具，严格串行
-- 详情页间隔：**10-15 秒随机**
-- 轮次间隔：**30-60 秒随机**
-- 列表页读取后停留：**5-8 秒**（模拟人类浏览）
-- 详情页数据采集完立即**关闭标签页**
-- 不使用 `bb-browser site boss/*` 适配器（会触发风控）
+- 截图来源：用户提供的 Boss 直聘**详情页**截图（不限批量或流式）
+- 分组：多张截图时先用视觉能力归组，确认后解析
+- 完整性：流式单张时主动询问是否截完整
+- 字段缺失：置 null，不中断写入
+- 无 bb-browser 依赖，无防风控延迟
 
 ## 依赖的外部 skill
 
-- `bb-browser`（控制用户真实 Chrome 抓取 Boss 直聘）
-- `docx`（解析用户提供的 Word 简历）
+- `docx`（解析用户提供的 .docx 简历）
 
 ## 当前状态
 
-- ✅ 设计文档、实现计划已完成
-- ✅ 4 个 skill 全部实现，安装到 `~/.claude/skills/`
-- ✅ 首次运行向导（自动建目录 + 对话配置 + 简历引导）
-- ✅ 风控优化（串行 + 长间隔 + 关标签）
+- ✅ 设计文档、实现计划已完成（feat/screenshot-input 分支）
+- ✅ fetcher 改为截图解析，去掉硬过滤
+- ✅ 输入流程简化：截图 + 简历文本，无需配置文件
+- ✅ 排序简化为 match score，shortlist 双路输出
 - ⏳ 用户真实跑完整流程自测中
-- ⏳ PR 待合并：https://github.com/JPCwhj/job-hunting/compare/main...feat/skill-suite
