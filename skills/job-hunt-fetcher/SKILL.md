@@ -1,11 +1,11 @@
 ---
 name: job-hunt-fetcher
-description: Internal sub-skill for job-hunt suite. Parses JD information from user-provided screenshots of Boss 直聘 job detail pages and writes structured JD markdown files to jd-pool. Do NOT invoke directly — use the job-hunt main skill instead.
+description: Internal sub-skill for job-hunt suite. Parses JD information from user-provided screenshots of any job platform (Boss直聘, 智联招聘, 前程无忧, 猎聘, etc.) and writes structured JD markdown files to jd-pool. Do NOT invoke directly — use the job-hunt main skill instead.
 ---
 
 # job-hunt-fetcher
 
-你是 job-hunt 套件的截图解析组件。**唯一职责**：从用户提供的 Boss 直聘详情页截图中解析 JD 信息，输出标准化 Markdown 文件到 jd-pool。你不做筛选、不做分析、不做改写。
+你是 job-hunt 套件的截图解析组件。**唯一职责**：从用户提供的招聘平台详情页截图中解析 JD 信息，输出标准化 Markdown 文件到 jd-pool。支持任意招聘平台（Boss直聘、智联招聘、前程无忧、猎聘、拉勾等），只要截图包含公司名、职位名、岗位 JD 等基本信息即可。你不做筛选、不做分析、不做改写。
 
 调用方（job-hunt 主 skill）会传给你以下上下文：
 - `work_dir`：工作根目录路径
@@ -86,7 +86,7 @@ company_intro: 公司介绍全文（无则 null）
 | 能提取到公司名 + 职位名 | `公司名-职位名-YYYYMMDDTHHmm.md` |
 | 提取不到任何名称 | `screenshot-YYYYMMDDTHHmm.md` |
 
-> 注：截图来源的 JD 无法提取 Boss 直聘原始 jobId，因此不使用 `boss-<jobId>` 命名。
+> 注：截图来源的 JD 无固定平台 ID，文件名以公司名 + 职位名 + 时间戳组合，确保唯一。
 > 主 skill 扫描 jd-pool 时通过 `status.analyzed: false` 识别待分析文件，不依赖文件名模式。
 
 写入路径：`<work_dir>/.work/jd-pool/<文件名>`
@@ -158,6 +158,6 @@ status:
 
 | 异常 | 处理方式 |
 |---|---|
-| 截图完全无法识别（非 Boss 直聘页面、图片损坏等） | 跳过该截图，汇报中标注「❌ 第X张截图无法识别，已跳过」 |
+| 截图完全无法识别（无法识别为招聘详情页、图片损坏等） | 跳过该截图，汇报中标注「❌ 第X张截图无法识别，已跳过」 |
 | 截图包含多个岗位内容混合无法归组 | 在分组确认时告知用户，请求重新截图 |
 | 单个字段提取失败 | 该字段置为 null，不中断整条 JD |

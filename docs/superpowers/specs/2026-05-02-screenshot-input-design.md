@@ -2,7 +2,7 @@
 
 ## 背景与动机
 
-原 `feat/skill-suite` 分支通过 `bb-browser` 自动控制 Chrome 抓取 Boss 直聘。新方案改为**用户手动截图上传**，由 AI 解析截图中的 JD 信息。
+原 `feat/skill-suite` 分支通过 `bb-browser` 自动控制 Chrome 抓取 Boss 直聘，仅支持单一平台。新方案改为**用户手动截图上传**，由 AI 解析截图中的 JD 信息，支持任意招聘平台（Boss直聘、智联招聘、前程无忧、猎聘、拉勾等），截图包含公司名、职位名、岗位 JD 即可。
 
 核心变化：
 - 去掉浏览器自动化依赖（`bb-browser`）
