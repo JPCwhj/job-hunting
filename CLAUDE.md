@@ -10,12 +10,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 阅读顺序
 
-任何代码或细节实现之前，**必读** [docs/superpowers/specs/2026-04-29-job-hunt-skill-design.md](docs/superpowers/specs/2026-04-29-job-hunt-skill-design.md)。这份 spec 定义了：
+任何代码或细节实现之前，**必读** [docs/superpowers/specs/2026-05-02-screenshot-input-design.md](docs/superpowers/specs/2026-05-02-screenshot-input-design.md)。这份 spec 定义了：
 - 4 个 skill 的职责边界（不要跨界）
 - 完整数据流（截图输入 → JD 解析 → shortlist.md）
 - 三处关键 schema：JD frontmatter / analysis frontmatter / shortlist 条目
-- 三层缓存策略（JD pool / analysis / STAR 预处理）
+- 缓存策略（JD pool / analysis 两层）
 - 改写伦理红线（写进 analyzer/tailor 的 prompt）
+
+> 历史参考：[docs/superpowers/specs/2026-04-29-job-hunt-skill-design.md](docs/superpowers/specs/2026-04-29-job-hunt-skill-design.md)（旧版 bb-browser 方案，已废弃）
 
 ## Skill 文件约定
 
@@ -27,7 +29,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Skill 拆分（不要随意调整）
 
 ```
-job-hunt              ← 主：编排 + 缓存管理 + 硬过滤 + 排序 + shortlist
+job-hunt              ← 主：编排 + 缓存管理 + 排序 + shortlist
 ├── job-hunt-fetcher  ← 截图解析，提取 JD 结构化数据，不做过滤/分析/改写
 ├── job-hunt-analyzer ← STAR 拆解 + 4 维匹配度，不直接改写简历（只生成"建议"）
 └── job-hunt-tailor   ← 定制简历三件套 (resume/opener/changelog)，严守伦理边界
@@ -53,7 +55,7 @@ job-hunt              ← 主：编排 + 缓存管理 + 硬过滤 + 排序 + sho
 - **work_dir = Claude 启动时的当前目录（`pwd`）**，无任何 fallback，不再使用 `~/.job-hunt/`
 - 用户简历支持 `.md` 或 `.docx`（`.docx` 用 `docx` skill 解析），内部统一为 MD
 - 定制简历输出**只 MD**，用户自己转 PDF 投递
-- JD 缓存：`<work_dir>/.work/jd-pool/boss-<jobId>.md`
+- JD 缓存：`<work_dir>/.work/jd-pool/公司名-职位名-YYYYMMDDTHHmm.md`（无公司名时用 `screenshot-YYYYMMDDTHHmm.md`）
 - 输出：`<work_dir>/output/<run_id>/`
 
 ## fetcher 截图解析约定
