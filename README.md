@@ -101,6 +101,14 @@ npx skills add JPCwhj/job-hunting -g
 
 ---
 
+## 数据安全
+
+- **所有文件保存在本机**：简历、JD、定制简历等全部写入本地 `jobHuntSkillData/` 目录，路径透明，不会自动上传或同步到任何地方
+- **内容只经过你已在用的 Claude**：skill 不连接任何第三方服务器，数据处理链路与你直接使用 Claude 完全相同
+- **skill 本身是纯文本指令**：无任何网络请求代码，可直接查看 `~/.claude/skills/` 下的源文件
+
+---
+
 ## License
 
 MIT
