@@ -9,11 +9,11 @@ description: 求职助手主入口。上传招聘平台岗位详情页截图（B
 
 **仅适用于 `/job-hunt` 无参数的全流程模式。**
 
-用户提供简历 + 说出「开始分析」之后，**剩余所有步骤全部自动连续执行，直到输出 shortlist**。
+用户提供简历 + 截图确认后，**剩余所有步骤全部自动连续执行，直到输出 shortlist**。
 
-- **Step 4 到 Step 7 之间：严禁输出任何文字**。输出文字 = turn 结束 = 等待用户 = 流程中断
+- **Step 3 fetcher 返回 → Step 7 之间：严禁输出任何文字**。输出文字 = turn 结束 = 等待用户 = 流程中断
 - 每一步结束后，立即调用下一步所需的工具（Skill / Bash / Read / Write），不插入任何文字
-- 子 skill（fetcher / analyzer / tailor）的返回结果是内部数据，**不向用户展开汇报，直接用于下一步**
+- 子 skill（fetcher / analyzer / tailor）的返回结果是内部数据，**不得回显、不得复述、不得向用户展开汇报，直接用于下一步**
 - **禁止**在步骤之间询问用户「是否继续」「要不要开始下一步」
 
 违反上述约束 = 流程中断，用户体验完全崩溃。
@@ -155,6 +155,14 @@ description: 求职助手主入口。上传招聘平台岗位详情页截图（B
 
 ---
 
+**⚠️ 空区块规则（规则二执行完后立即检查）**
+
+若某经历类区块经规则二处理后，**全部行均被跳过**（即该区块内无任何行含有行动动词或结果描述），则该区块整体不出现在评估报告中，**不得为该区块生成任何评估条目，也不得从其他区块借调内容来填充**。直接忽略该区块，继续处理下一个区块。
+
+典型场景：「工作及教育经历」区块内只有公司名+时间+部门名三行头部信息，规则二全部跳过后，该区块消失，不出现在报告里。
+
+---
+
 **规则三：剩下的内容才评估**
 
 通过前两条规则筛选后剩下的句子/条目，即为**可评估单元**，进入下方三维度打分。
@@ -258,12 +266,12 @@ B. 先不改，用当前简历继续
    - `work_dir`：<data_dir 的值>
    - `run_id`：<当前 run_id>
    - `screenshots`：<本批次截图>
-2. fetcher 内部处理（含分组确认交互），完成后返回写入的 JD 文件 ID 列表
-3. 将 ID 列表追加到 `state.json` 的 `stages.fetched`，更新 `checkpoint_at` 和 `phase` 为 `"fetched"`
+2. fetcher 内部处理（含分组确认交互），完成后写入 jd-pool
+3. 用 Bash 工具扫描 `<data_dir>/.work/jd-pool/` 下所有 `.md` 文件（排除 `.analysis.md`），读取 frontmatter 中 `run_id` 等于当前 run_id 的文件，提取其 `id` 字段，作为本批次 ID 列表；将 ID 列表追加到 `state.json` 的 `stages.fetched`，更新 `checkpoint_at` 和 `phase` 为 `"fetched"`
 
 若子命令为 `fetch`：告知用户「✅ JD 导入完成，共 <N> 个岗位。运行 /job-hunt analyze 开始分析。」并停止。
 
-**【全流程】不得输出任何文字，立即调用 Skill 工具执行 Step 4。**
+**【全流程】⚠️ fetcher 返回后，严禁输出任何文字（包括不得回显或复述 fetcher 的输出内容）。state.json 更新完毕后，下一个动作必须是 Skill 工具调用（执行 Step 4），不得有任何文字夹在中间。**
 
 ---
 
@@ -285,9 +293,9 @@ B. 先不改，用当前简历继续
 - `preferences`：`{"soft_preferences": {"prefer_industries": [], "avoid_industries": [], "prefer_company_size": []}, "ranking": {"match_weight": 1.0, "preference_weight": 0.0}}`
 - `run_id`：<当前 run_id>
 
-analyzer 返回后，更新 state.json `phase` 为 `"analyzed"`。
+analyzer 返回后，用 Bash 工具更新 state.json `phase` 为 `"analyzed"`。
 
-**【全流程】不输出任何文本，立即执行 Step 5。**
+**【全流程】⚠️ 不得回显或复述 analyzer 的返回内容，state.json 更新完毕后立即执行 Step 5，不得有任何文字输出。**
 
 ---
 
@@ -295,13 +303,13 @@ analyzer 返回后，更新 state.json `phase` 为 `"analyzed"`。
 
 （全流程或 tailor 子命令前执行，不调用 LLM）
 
-读取所有 analysis 文件（`<data_dir>/.work/jd-pool/*.analysis.md`），提取每个文件中的 `scores.total` 字段，按降序排列。
+⚠️ **本步骤全程使用 Bash / Read 工具操作，严禁输出任何文字（包括排序过程、中间结果、排名列表）。**
 
-**所有已分析 JD 全部参与排序，不截断。**
+用 Bash 读取 `<data_dir>/.work/jd-pool/*.analysis.md`，提取每个文件中的 `scores.total` 字段，按降序排列，得到 JD ID 有序列表。**所有已分析 JD 全部参与排序，不截断。**
 
-将排序结果（JD ID 有序列表）写入 `state.json` 的 `stages.sorted_ids` 字段，同时保留在内存中供 Step 6 直接使用。Step 6 断点续跑时，若内存中无排序结果，从 `state.json.stages.sorted_ids` 读取。
+用 Bash 将排序结果写入 `state.json` 的 `stages.sorted_ids` 字段，同时保留在内存中供 Step 6 直接使用。Step 6 断点续跑时，若内存中无排序结果，从 `state.json.stages.sorted_ids` 读取。
 
-**【全流程】排序完成后立即执行 Step 6，不等待用户。**
+**【全流程】⚠️ state.json 更新完毕后立即调用 Skill 工具执行 Step 6，不得有任何文字输出。**
 
 ---
 
@@ -320,9 +328,9 @@ analyzer 返回后，更新 state.json `phase` 为 `"analyzed"`。
 - `jd_ids`：<完整排序后的 JD ID 列表>
 - `run_id`：<当前 run_id>
 
-tailor 返回后，更新 state.json `phase` 为 `"tailored"`。
+tailor 返回后，用 Bash 工具更新 state.json `phase` 为 `"tailored"`。
 
-**【全流程】不输出任何文本，立即执行 Step 7。**
+**【全流程】⚠️ 不得回显或复述 tailor 的返回内容，state.json 更新完毕后立即执行 Step 7，不得有任何文字输出。**
 
 ---
 
