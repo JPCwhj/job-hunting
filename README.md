@@ -19,9 +19,7 @@
 ## 安装
 
 ```bash
-git clone https://github.com/JPCwhj/job-hunting.git
-cd job-hunting
-bash scripts/install.sh
+npx skills add JPCwhj/job-hunting
 ```
 
 安装完成后，**无需重启 Claude Code**，skill 立即可用。
