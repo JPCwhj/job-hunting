@@ -63,6 +63,7 @@ npx skills add JPCwhj/job-hunting -g
 ## 前置条件
 
 
+- **你的大模型有视觉能力，能识别图片**
 - [Claude Code](https://github.com/anthropics/claude-code) 已安装（或任何支持 Skill 规范的 Agent，如 OpenClaw）
 - 如果简历是 Word 文档，以 `.docx` 格式上传，请先安装 [docx skill](https://skills.sh/anthropics/skills/docx)
 - 任意招聘平台（Boss直聘、智联招聘、前程无忧、猎聘、拉勾等），截取感兴趣的岗位详情页截图即可
@@ -97,6 +98,14 @@ npx skills add JPCwhj/job-hunting -g
 - **不做自动投递**，避免封号风险
 - **不依赖任何插件或扩展**：你截图，AI 解析，无需浏览器插件或 MCP 工具
 - **简历改写有伦理约束**：只改措辞和结构，不凭空增加经历，编造数字必须用 `[请填写：xxx]` 占位，`changelog.md` 记录每一处改动供你审查
+
+---
+
+## 数据安全
+
+- **所有文件保存在本机**：简历、JD、定制简历等全部写入本地 `jobHuntSkillData/` 目录，路径透明，不会自动上传或同步到任何地方
+- **内容只经过你已在用的 Claude**：skill 不连接任何第三方服务器，数据处理链路与你直接使用 Claude 完全相同
+- **skill 本身是纯文本指令**：无任何网络请求代码，可直接查看 `~/.claude/skills/` 下的源文件
 
 ---
 
