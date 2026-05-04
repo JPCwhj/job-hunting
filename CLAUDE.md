@@ -19,6 +19,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 > 历史参考：[docs/superpowers/specs/2026-04-29-job-hunt-skill-design.md](docs/superpowers/specs/2026-04-29-job-hunt-skill-design.md)（旧版 bb-browser 方案，已废弃）
 
+## README 维护约定
+
+**每次修改 `README.md` 后，必须同步更新 `README.en.md`**：
+- 内容改动同步翻译到英文版
+- 涉及国内招聘平台名称（Boss直聘、智联招聘等）的地方，英文版统一用 "major hiring platform" 代替，不直接翻译平台名
+- 两个文件顶部的互链（`[English](README.en.md)` / `[中文](README.md)`）保持不变
+
 ## Skill 文件约定
 
 - **文件名必须是 `SKILL.md`**（不是 index.md）

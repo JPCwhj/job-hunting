@@ -1,5 +1,7 @@
 # job-hunt · 求职助手 skill
 
+[English](README.en.md)
+
 上传招聘平台某一岗位详情页截图，AI 自动解析 JD、匹配简历、生成定制简历和开场白，最后按匹配度排序输出 shortlist（推荐列表）。
 
 > **定位**：效率工具，不是自动投递机器人。最终点击「立即沟通」由你来决定。
@@ -38,11 +40,9 @@ npx skills add JPCwhj/job-hunting -g
 
 ## 使用方式
 
-**方式一**：启动任意支持 skill 的 agent 工具（如 Claude Code、Codex），运行：
-
-```
-/job-hunt
-```
+**方式一**：启动任意支持 skill 的 agent 工具，运行对应命令：
+- Claude Code：`/job-hunt`
+- Codex：`$job-hunt`
 
 **方式二**：在 OpenClaw 等本地 AI agent 工具的对话窗口中，发送：
 
@@ -119,8 +119,3 @@ npx skills add JPCwhj/job-hunting -g
 - **内容只经过你已在用的 Claude**：skill 不连接任何第三方服务器，数据处理链路与你直接使用 Claude 完全相同
 - **skill 本身是纯文本指令**：无任何网络请求代码，可直接查看 `~/.claude/skills/` 下的源文件
 
----
-
-## License
-
-MIT
