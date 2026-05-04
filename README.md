@@ -60,8 +60,10 @@ bash scripts/install.sh
 
 ## 前置条件
 
+
 - [Claude Code](https://claude.ai/code) 已安装（或任何支持 Skill 规范的 Agent，如 OpenClaw）
 - 任意招聘平台（Boss直聘、智联招聘、前程无忧、猎聘、拉勾等），截取感兴趣的岗位详情页截图即可
+
 
 ---
 
