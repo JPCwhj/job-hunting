@@ -342,7 +342,6 @@ tailor 返回后，更新 state.json `phase` 为 `"tailored"`。
 
 ### 🥇 1. <company.name> · <title> · 匹配度 <match_score> 分
 - 💰 <salary.range><若 monthly_count 不为 null 追加"·<monthly_count>薪"> | 📍 <location.city>·<location.district>
-- 👤 HR <hr.name>（<hr.active_status>）
 - 📊 分项：硬技能 <scores.hard_skills> / 经验 <scores.experience_depth> / 行业 <scores.domain_fit> / 软性 <scores.soft_fit>
 - 💡 <analysis 文件中的「一句话评估」>
 - 📄 [定制简历](tailored/<id>/resume.md) · 💬 [开场白](tailored/<id>/opener.md) · 📋 [改动](tailored/<id>/changelog.md)
