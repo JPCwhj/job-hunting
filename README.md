@@ -69,18 +69,19 @@ npx skills add JPCwhj/job-hunting
 
 ```
 <当前目录>/
-├── .work/
-│   ├── resume.md                 ← 你提供的简历（自动保存）
-│   └── jd-pool/                  ← 解析后的 JD 缓存
-└── output/
-    └── 2026-05-02-1430/          ← 每次运行一个目录
-        ├── shortlist.md          ← 最终排序结果
-        ├── state.json            ← 断点续跑状态
-        └── tailored/
-            └── <公司名-职位名>/
-                ├── resume.md     ← 定制简历
-                ├── opener.md     ← 开场白
-                └── changelog.md  ← AI 改了什么（透明度保险）
+└── jobHuntSkillData/             ← 所有数据统一放在这里
+    ├── .work/
+    │   ├── resume.md             ← 你提供的简历（自动保存）
+    │   └── jd-pool/              ← 解析后的 JD 缓存
+    └── output/
+        └── 2026-05-02-1430/      ← 每次运行一个目录
+            ├── shortlist.md      ← 最终排序结果
+            ├── state.json        ← 断点续跑状态
+            └── tailored/
+                └── <公司名-职位名>/
+                    ├── resume.md     ← 定制简历
+                    ├── opener.md     ← 开场白
+                    └── changelog.md  ← AI 改了什么（透明度保险）
 ```
 
 ---

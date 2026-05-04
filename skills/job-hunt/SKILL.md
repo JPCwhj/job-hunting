@@ -41,16 +41,18 @@ description: 求职助手主入口。上传招聘平台岗位详情页截图（B
 
 用 Bash 获取：`pwd`，将结果作为 `work_dir`。
 
+`data_dir` = `<work_dir>/jobHuntSkillData`（所有数据文件统一放在这一层目录下，不直接写入 `work_dir`）。
+
 确保以下目录存在（用 Bash `mkdir -p` 创建）：
 ```
-<work_dir>/.work/jd-pool/
-<work_dir>/output/
+<data_dir>/.work/jd-pool/
+<data_dir>/output/
 ```
 
 生成 `run_id`（格式：`YYYY-MM-DD-HHMM`，使用当前本地时间）。
-创建目录 `<work_dir>/output/<run_id>/`。
+创建目录 `<data_dir>/output/<run_id>/`。
 
-初始化 `<work_dir>/output/<run_id>/state.json`：
+初始化 `<data_dir>/output/<run_id>/state.json`：
 ```json
 {
   "run_id": "<run_id>",
@@ -66,7 +68,9 @@ description: 求职助手主入口。上传招聘平台岗位详情页截图（B
 }
 ```
 
-**子命令特殊处理**：若当前子命令为 `analyze`、`tailor` 或 `status`，在生成新 run_id 之前，先扫描 `<work_dir>/output/` 下已有的 run 目录（格式 `YYYY-MM-DD-HHMM`），若存在则**复用最新一个 run_id**（不创建新目录，读取已有 state.json 继续使用）；若不存在，则按上述流程创建新 run_id。
+**后续所有步骤中凡涉及路径的地方，一律使用 `data_dir` 代替 `work_dir`**。传给子 skill 的 `work_dir` 参数也传入 `data_dir` 的值。
+
+**子命令特殊处理**：若当前子命令为 `analyze`、`tailor` 或 `status`，在生成新 run_id 之前，先扫描 `<data_dir>/output/` 下已有的 run 目录（格式 `YYYY-MM-DD-HHMM`），若存在则**复用最新一个 run_id**（不创建新目录，读取已有 state.json 继续使用）；若不存在，则按上述流程创建新 run_id。
 
 ---
 
