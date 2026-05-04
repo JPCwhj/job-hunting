@@ -12,7 +12,7 @@
 2. **解析 JD**：上传招聘平台详情页截图（Boss直聘、智联招聘、前程无忧、猎聘、拉勾等均可），AI 自动提取结构化信息（职位、薪资、要求、公司规模等）
 3. **匹配分析**：把每条 JD 和你的简历做 STAR 对齐，输出 4 个维度的匹配分（硬技能 / 经验深度 / 行业契合 / 软性匹配）
 4. **生成三件套**：为每个岗位各生成一份定制简历 + 开场白 + 改动说明
-5. **输出 shortlist**：按匹配度排序，同步展示 HR 活跃状态供你参考
+5. **输出 shortlist**：岗位按匹配度从高到低排序
 
 ---
 
@@ -76,7 +76,7 @@ npx skills add JPCwhj/job-hunting -g
 
 
 - **你的大模型有视觉能力，能识别图片**
-- [Claude Code](https://github.com/anthropics/claude-code) 已安装（或任何支持 Skill 规范的 Agent，如 OpenClaw）
+- [Claude Code](https://github.com/anthropics/claude-code) 已安装（或任何支持 Skill 规范的 Agent，如 Codex、OpenClaw 等）
 - 如果简历是 Word 文档，以 `.docx` 格式上传，请先安装 [docx skill](https://skills.sh/anthropics/skills/docx)
 - 任意招聘平台（Boss直聘、智联招聘、前程无忧、猎聘、拉勾等），截取感兴趣的岗位详情页截图即可
 
