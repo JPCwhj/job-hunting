@@ -59,7 +59,7 @@ description: Internal sub-skill for job-hunt suite. Performs STAR alignment anal
 
 1. 调整经历段的顺序（把与 JD 最相关的放前面）
 2. 对每段经历，按分析结论重写 Action 和 Result（保持事实，不增加内容）
-3. 技能列表：把 JD 强调的已有技能移到最前
+3. 技能列表：把 JD 强调的已有技能移到最前，**其余技能全部保留，不得删减**
 4. 在对应位置插入 `[请填写：<描述>]`（缺量化数据处）
 5. 加 `[需用户确认]` 标注（轻度补充的隐含信息处）
 
