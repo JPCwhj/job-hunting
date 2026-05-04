@@ -9,11 +9,11 @@ description: 求职助手主入口。上传招聘平台岗位详情页截图（B
 
 **仅适用于 `/job-hunt` 无参数的全流程模式。**
 
-用户提供简历 + 说出「开始分析」之后，**剩余所有步骤全部自动连续执行，直到输出 shortlist**。
+用户提供简历 + 截图确认后，**剩余所有步骤全部自动连续执行，直到输出 shortlist**。
 
-- **Step 4 到 Step 7 之间：严禁输出任何文字**。输出文字 = turn 结束 = 等待用户 = 流程中断
+- **Step 3 fetcher 返回 → Step 7 之间：严禁输出任何文字**。输出文字 = turn 结束 = 等待用户 = 流程中断
 - 每一步结束后，立即调用下一步所需的工具（Skill / Bash / Read / Write），不插入任何文字
-- 子 skill（fetcher / analyzer / tailor）的返回结果是内部数据，**不向用户展开汇报，直接用于下一步**
+- 子 skill（fetcher / analyzer / tailor）的返回结果是内部数据，**不得回显、不得复述、不得向用户展开汇报，直接用于下一步**
 - **禁止**在步骤之间询问用户「是否继续」「要不要开始下一步」
 
 违反上述约束 = 流程中断，用户体验完全崩溃。
@@ -267,11 +267,11 @@ B. 先不改，用当前简历继续
    - `run_id`：<当前 run_id>
    - `screenshots`：<本批次截图>
 2. fetcher 内部处理（含分组确认交互），完成后返回写入的 JD 文件 ID 列表
-3. 将 ID 列表追加到 `state.json` 的 `stages.fetched`，更新 `checkpoint_at` 和 `phase` 为 `"fetched"`
+3. 用 Bash 工具将 ID 列表追加到 `state.json` 的 `stages.fetched`，更新 `checkpoint_at` 和 `phase` 为 `"fetched"`
 
 若子命令为 `fetch`：告知用户「✅ JD 导入完成，共 <N> 个岗位。运行 /job-hunt analyze 开始分析。」并停止。
 
-**【全流程】不得输出任何文字，立即调用 Skill 工具执行 Step 4。**
+**【全流程】⚠️ fetcher 返回后，严禁输出任何文字（包括不得回显或复述 fetcher 的输出内容）。state.json 更新完毕后，下一个动作必须是 Skill 工具调用（执行 Step 4），不得有任何文字夹在中间。**
 
 ---
 
