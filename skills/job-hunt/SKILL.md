@@ -266,8 +266,8 @@ B. 先不改，用当前简历继续
    - `work_dir`：<data_dir 的值>
    - `run_id`：<当前 run_id>
    - `screenshots`：<本批次截图>
-2. fetcher 内部处理（含分组确认交互），完成后返回写入的 JD 文件 ID 列表
-3. 用 Bash 工具将 ID 列表追加到 `state.json` 的 `stages.fetched`，更新 `checkpoint_at` 和 `phase` 为 `"fetched"`
+2. fetcher 内部处理（含分组确认交互），完成后写入 jd-pool
+3. 用 Bash 工具扫描 `<data_dir>/.work/jd-pool/` 下所有 `.md` 文件（排除 `.analysis.md`），读取 frontmatter 中 `run_id` 等于当前 run_id 的文件，提取其 `id` 字段，作为本批次 ID 列表；将 ID 列表追加到 `state.json` 的 `stages.fetched`，更新 `checkpoint_at` 和 `phase` 为 `"fetched"`
 
 若子命令为 `fetch`：告知用户「✅ JD 导入完成，共 <N> 个岗位。运行 /job-hunt analyze 开始分析。」并停止。
 
