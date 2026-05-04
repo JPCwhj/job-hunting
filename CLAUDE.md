@@ -106,3 +106,5 @@ Claude Code 的运行模型：
 - ✅ 简历评估过滤规则重写为三条：①区块级跳过（技能/教育/个人信息等整块略过，语义判断不限死名称）②行级跳过（无行动动词且无结果描述的行跳过，部门名中的动词性词语不算行动动词）③剩下的才评估
 - ✅ 所有生成目录统一收纳到 jobHuntSkillData/，data_dir = work_dir/jobHuntSkillData，全部路径引用已从 work_dir 替换为 data_dir
 - ✅ jobHuntSkillData/ 加入 .gitignore，防止简历缓存和输出文件被误提交
+- ✅ analyzer STAR 拆解同步加入三条过滤规则：区块级跳过 → 行级跳过（工作经历头部行天然无动词无结果，自动跳过）→ 剩下才拆解，与 Step 2.5 一致
+- ✅ shortlist 删除 HR 信息行（hr.name / hr.active_status），只保留薪资、地点、分项分和定制简历链接

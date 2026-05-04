@@ -240,7 +240,7 @@ final_rank_score = match_score
 
 `match_score` 由 analyzer 给出（简历 × JD 匹配度，0-100）。
 
-HR 活跃状态**不参与计算**，在 shortlist 中作为辅助信息展示，用户自行判断。
+HR 活跃状态**不参与计算**，也不在 shortlist 中展示。
 
 ### shortlist 输出
 
@@ -255,10 +255,10 @@ shortlist 格式：
 
 ## 排名
 
-| # | 公司 | 职位 | 匹配度 | HR 活跃 | 定制简历路径 |
-|---|---|---|---|---|---|
-| 1 | 字节跳动 | 产品经理 | 92 | 今日活跃 | output/.../bytedance-pm/ |
-| 2 | 美团 | 高级产品经理 | 87 | 3天内活跃 | output/.../meituan-pm/ |
+| # | 公司 | 职位 | 匹配度 | 定制简历路径 |
+|---|---|---|---|---|
+| 1 | 字节跳动 | 产品经理 | 92 | output/.../bytedance-pm/ |
+| 2 | 美团 | 高级产品经理 | 87 | output/.../meituan-pm/ |
 ...
 ```
 
@@ -285,6 +285,7 @@ shortlist 格式：
 - **移除 Step 2.5 STAR 改写建议**：analyzer 职责缩减为"只输出评分和维度分析"，改写建议统一挪入 tailor
 - **评分简化**：`scores.total = round((hard_skills + experience_depth + domain_fit + soft_fit) / 4)`，去掉 hr_factor 和 preference_score
 - **逐 JD 进度输出**：`✅ 公司名·职位名 — 匹配度 XX 分（n/total 完成）` / `⚡ 复用缓存（n/total）`
+- **STAR 拆解加入三条过滤规则**：与 Step 2.5 一致——①区块级跳过（技能/教育/个人信息等）②行级跳过（工作经历头部行无行动动词且无结果，自动跳过；部门名中的动词性词语不算行动动词）③剩下才拆解，避免把「公司名+日期+部门」套 STAR
 
 ## tailor 变更
 
