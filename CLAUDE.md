@@ -99,3 +99,4 @@ Claude Code 的运行模型：
 - ✅ STAR 对齐分析移入 tailor Step 1.0（analyzer 只输出评分，不生成改写建议）
 - ✅ 全流程自动化修复：Step 4-7 之间无文字输出，纯工具调用链
 - ✅ analyzer/tailor 均有逐 JD 进度输出
+- ✅ 新增 Step 2.5：简历质量评估（STAR/PAR 法则，新上传简历时触发，用户可选择修改或继续）
