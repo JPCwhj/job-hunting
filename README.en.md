@@ -57,7 +57,7 @@ npx skills add JPCwhj/job-hunting -g
 4. After confirming screenshots, analysis and tailoring run automatically — no extra trigger needed
 5. Review shortlist, fill in placeholders, apply manually
 
-**Re-run with a new resume**: Run `/job-hunt analyze`, then send your updated resume at Step 2. It replaces the cached version automatically — no need to clean first.
+**Re-run with a new resume**: Run `/job-hunt` again and it will prompt you to send your updated resume. Send it directly to replace the cached version — no need to clean first.
 
 ### Subcommands
 

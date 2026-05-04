@@ -57,7 +57,7 @@ npx skills add JPCwhj/job-hunting -g
 4. 截图确认后自动进入匹配分析与简历定制，无需额外触发
 5. 查看 shortlist，回填占位符，手动投递
 
-**换简历重跑**：改完简历后运行 `/job-hunt analyze`，Step 2 会提示你发新简历，直接发过去即可替换，无需 clean。
+**换简历重跑**：改完简历后再次运行 `/job-hunt`，会提示你发新简历，直接发过去即可替换，无需 clean。
 
 ### 子命令
 
