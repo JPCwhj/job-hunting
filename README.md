@@ -38,7 +38,7 @@ npx skills add JPCwhj/job-hunting -g
 
 ## 使用方式
 
-**方式一**：启动任意支持 skill 的 agent 工具（如 Claude Code），运行：
+**方式一**：启动任意支持 skill 的 agent 工具（如 Claude Code、Codex），运行：
 
 ```
 /job-hunt
