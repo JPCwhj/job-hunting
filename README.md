@@ -38,13 +38,13 @@ npx skills add JPCwhj/job-hunting -g
 
 ## 使用方式
 
-**方式一**：在任意目录启动 Claude Code，运行：
+**方式一**：启动任意支持 skill 的 agent 工具（如 Claude Code），运行：
 
 ```
 /job-hunt
 ```
 
-**方式二**：在 OpenClaw 对话窗口中，发送：
+**方式二**：在 OpenClaw 等本地 AI agent 工具的对话窗口中，发送：
 
 ```
 /job-hunt
