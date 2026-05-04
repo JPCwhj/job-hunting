@@ -1,6 +1,6 @@
-# job-hunt · Claude Code Skill Suite
+# job-hunt · 求职助手 skill
 
-上传招聘平台的岗位截图，AI 自动解析 JD、匹配简历、生成定制简历和开场白，最后按匹配度排序输出 shortlist。
+上传招聘平台的岗位截图，AI 自动解析 JD、匹配简历、生成定制简历和开场白，最后按匹配度排序输出 shortlist（推荐列表）。
 
 > **定位**：效率工具，不是自动投递机器人。最终点击「立即沟通」由你来决定。
 
@@ -19,18 +19,20 @@
 ## 安装
 
 ```bash
-git clone https://github.com/JPCwhj/job-hunting.git
-cd job-hunting
-bash scripts/install.sh
+npx skills add JPCwhj/job-hunting -g
 ```
-
-安装完成后，**无需重启 Claude Code**，skill 立即可用。
 
 ---
 
 ## 使用
 
-在任意目录启动 Claude Code，运行：
+**方式一**：在任意目录启动 Claude Code，运行：
+
+```
+/job-hunt
+```
+
+**方式二**：在 OpenClaw 对话窗口中，发送：
 
 ```
 /job-hunt
@@ -61,7 +63,8 @@ bash scripts/install.sh
 ## 前置条件
 
 
-- [Claude Code](https://claude.ai/code) 已安装（或任何支持 Skill 规范的 Agent，如 OpenClaw）
+- [Claude Code](https://github.com/anthropics/claude-code) 已安装（或任何支持 Skill 规范的 Agent，如 OpenClaw）
+- 如果简历是 Word 文档，以 `.docx` 格式上传，请先安装 docx skill：`npx skills add https://skills.sh/anthropics/skills/docx -g`
 - 任意招聘平台（Boss直聘、智联招聘、前程无忧、猎聘、拉勾等），截取感兴趣的岗位详情页截图即可
 
 
@@ -71,18 +74,19 @@ bash scripts/install.sh
 
 ```
 <当前目录>/
-├── .work/
-│   ├── resume.md                 ← 你提供的简历（自动保存）
-│   └── jd-pool/                  ← 解析后的 JD 缓存
-└── output/
-    └── 2026-05-02-1430/          ← 每次运行一个目录
-        ├── shortlist.md          ← 最终排序结果
-        ├── state.json            ← 断点续跑状态
-        └── tailored/
-            └── <公司名-职位名>/
-                ├── resume.md     ← 定制简历
-                ├── opener.md     ← 开场白
-                └── changelog.md  ← AI 改了什么（透明度保险）
+└── jobHuntSkillData/             ← 所有数据统一放在这里
+    ├── .work/
+    │   ├── resume.md             ← 你提供的简历（自动保存）
+    │   └── jd-pool/              ← 解析后的 JD 缓存
+    └── output/
+        └── 2026-05-02-1430/      ← 每次运行一个目录
+            ├── shortlist.md      ← 最终排序结果
+            ├── state.json        ← 断点续跑状态
+            └── tailored/
+                └── <公司名-职位名>/
+                    ├── resume.md     ← 定制简历
+                    ├── opener.md     ← 开场白
+                    └── changelog.md  ← AI 改了什么（透明度保险）
 ```
 
 ---

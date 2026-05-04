@@ -41,16 +41,18 @@ description: 求职助手主入口。上传招聘平台岗位详情页截图（B
 
 用 Bash 获取：`pwd`，将结果作为 `work_dir`。
 
+`data_dir` = `<data_dir>/jobHuntSkillData`（所有数据文件统一放在这一层目录下，不直接写入 `work_dir`）。
+
 确保以下目录存在（用 Bash `mkdir -p` 创建）：
 ```
-<work_dir>/.work/jd-pool/
-<work_dir>/output/
+<data_dir>/.work/jd-pool/
+<data_dir>/output/
 ```
 
 生成 `run_id`（格式：`YYYY-MM-DD-HHMM`，使用当前本地时间）。
-创建目录 `<work_dir>/output/<run_id>/`。
+创建目录 `<data_dir>/output/<run_id>/`。
 
-初始化 `<work_dir>/output/<run_id>/state.json`：
+初始化 `<data_dir>/output/<run_id>/state.json`：
 ```json
 {
   "run_id": "<run_id>",
@@ -66,7 +68,9 @@ description: 求职助手主入口。上传招聘平台岗位详情页截图（B
 }
 ```
 
-**子命令特殊处理**：若当前子命令为 `analyze`、`tailor` 或 `status`，在生成新 run_id 之前，先扫描 `<work_dir>/output/` 下已有的 run 目录（格式 `YYYY-MM-DD-HHMM`），若存在则**复用最新一个 run_id**（不创建新目录，读取已有 state.json 继续使用）；若不存在，则按上述流程创建新 run_id。
+**后续所有步骤中凡涉及路径的地方，一律使用 `data_dir` 代替 `work_dir`**。传给子 skill 的 `work_dir` 参数也传入 `data_dir` 的值。
+
+**子命令特殊处理**：若当前子命令为 `analyze`、`tailor` 或 `status`，在生成新 run_id 之前，先扫描 `<data_dir>/output/` 下已有的 run 目录（格式 `YYYY-MM-DD-HHMM`），若存在则**复用最新一个 run_id**（不创建新目录，读取已有 state.json 继续使用）；若不存在，则按上述流程创建新 run_id。
 
 ---
 
@@ -74,7 +78,7 @@ description: 求职助手主入口。上传招聘平台岗位详情页截图（B
 
 （全流程、fetch、analyze 子命令时执行）
 
-检查 `<work_dir>/.work/resume.md` 是否存在：
+检查 `<data_dir>/.work/resume.md` 是否存在：
 
 **若已存在**：告知用户：
 
@@ -100,7 +104,7 @@ description: 求职助手主入口。上传招聘平台岗位详情页截图（B
 - **文件路径（.md）**：用 Bash 读取文件内容
 - **粘贴文本**：直接使用该文本内容
 
-将最终 Markdown 内容写入 `<work_dir>/.work/resume.md`。
+将最终 Markdown 内容写入 `<data_dir>/.work/resume.md`。
 告知用户：「✅ 简历已保存。」
 
 进入 Step 2.5。
@@ -111,28 +115,52 @@ description: 求职助手主入口。上传招聘平台岗位详情页截图（B
 
 （仅在用户本次会话中新提供了简历时执行；复用缓存的直接跳到 Step 3）
 
-读取 `<work_dir>/.work/resume.md`，找出所有**可评估单元**，逐一打分，输出结果。
+读取 `<data_dir>/.work/resume.md`，找出所有**可评估单元**，逐一打分，输出结果。
 
-**可评估单元的判断规则（严格遵守）：**
+**三条判断规则，按顺序执行，全部满足才评估：**
 
-✅ **需要评估**：描述「做了什么 / 负责什么 / 结果如何」的句子或条目，例如：
-- 「负责用户增长模块的需求规划和落地」
-- 「主导重构支付流程，将转化率从 12% 提升至 18%」
-- 「设计并推动 A/B 测试体系，覆盖全站 xx 个页面」
+---
 
-❌ **跳过，不评估**：仅描述「在哪里 / 什么时候 / 担任什么职位」的标题行，例如：
-- 「字节跳动 · 产品经理 · 2021.03—2023.06」
-- 「A 公司，高级运营，2019 年到 2021 年」
-- 「项目名称：xxx 平台 | 角色：负责人」
+**规则一：整个区块跳过（不看内容，直接略过）**
 
-这类行只是履历事实标注，**没有行动和结果可评估，强行拆分 S/A/R 是错误的**，直接跳过。
+下列区块不论写了什么，整体跳过，不评估：
+- 个人信息 / 基本信息 / 联系方式
+- 专业技能 / 技能特长 / 技术能力 / 工具使用 / 技术栈
+- 教育背景 / 教育经历 / 学历
+- 自我评价 / 个人简介 / 求职意向
+- 证书 / 奖项 / 荣誉
 
-⚠️ **边界情况：标题和描述混在同一行**
+**区块名不限于以上文字**，只要语义属于上述类型（如「我的技能」「掌握的工具」「所获奖励」），同样整体跳过。
 
-判断依据是**内容**，不是格式。如果一行里除了项目名称/公司名称，还包含了行动或结果的描述，则按描述行处理，需要评估。例如：
-- 「项目名称：xxx 平台，负责从 0 到 1 搭建增长体系，DAU 提升 40%」→ ✅ 需要评估（含行动和结果）
-- 「在字节跳动担任产品经理期间主导了 xx 项目的落地」→ ✅ 需要评估（含行动描述）
-- 「项目名称：xxx 平台 | 角色：产品负责人 | 时间：2022.01—2022.06」→ ❌ 跳过（纯标注，无描述）
+⚠️ **合并区块的处理**：如果区块名同时包含工作和教育（如「工作及教育经历」「教育与工作背景」），**不整体跳过**，进入规则二逐行判断。其中属于教育条目的行（含学校名、专业名、学位、在校时间）按规则二同样会被跳过。
+
+**其他所有区块**（工作经历、项目经历、实习经历、创业经历、兼职经历，或任何自定义名称的经历类区块）进入规则二。
+
+---
+
+**规则二：区块内的标题行跳过**
+
+经历类区块内，每一行单独判断。如果这一行**同时满足以下两点**，跳过：
+- 没有行动动词（负责、主导、设计、推动、搭建、优化、完成、实现、带领等）
+- 没有结果描述（提升、降低、增长、减少、达到、超过、节省，或具体数字/百分比）
+
+⚠️ **重要：职位名、部门名中含有的动词性词语不算行动动词。** 例如"运营组""品牌部""设计科""管理岗"——这些是组织单元的名称标签，不是对个人行为的描述，不触发评估。判断依据是：这个词是在描述「这个人做了什么」，还是在说明「这个部门/岗位叫什么名字」。
+
+例如：
+- 「字节跳动 · 产品经理 · 2021.03—2023.06」→ ❌ 跳过（无动词无结果）
+- 「某文化传媒公司　2023.7~2025.11　新媒体-运营组」→ ❌ 跳过（"运营"是部门名，不是行动描述）
+- 「某互联网科技公司　2022.6~2023.6　市场部-品牌组」→ ❌ 跳过（"品牌"是部门名，不是行动描述）
+- 「xx大学　2018.9~2022.6　新闻传播专业-本科」→ ❌ 跳过（教育条目，无行动无结果）
+- 「项目名称：xxx 平台 | 角色：负责人 | 2022.01—2022.06」→ ❌ 跳过（无动词无结果）
+
+---
+
+**规则三：剩下的内容才评估**
+
+通过前两条规则筛选后剩下的句子/条目，即为**可评估单元**，进入下方三维度打分。
+
+⚠️ 标题行与描述混写在同一行时，按规则二判断：只要含有行动动词或结果描述，就评估。
+- 「在字节跳动担任产品经理期间主导了 xx 项目落地，DAU 提升 40%」→ ✅ 评估（含动词+结果）
 
 ### 评估维度
 
@@ -199,13 +227,33 @@ B. 先不改，用当前简历继续
 
 提示用户：
 
-「请上传你感兴趣的岗位详情页截图（Boss直聘、智联招聘、前程无忧、猎聘、拉勾等均可），一次发完即可。」
+「请上传你感兴趣的岗位详情页截图（Boss直聘、智联招聘、前程无忧、猎聘、拉勾等均可），一次发完即可。
+也可以告诉我截图所在的目录路径，我来自动读取。」
 
-发出上方提示后，停止执行，等待用户发送截图。
+发出上方提示后，停止执行，等待用户发送截图或消息。
 
-收到截图后：
+**根据用户输入方式处理：**
+
+**方式一：直接上传截图**
+
+收到图片文件后，直接进入下方「调用 fetcher」步骤。
+
+**方式二：提供目录路径**
+
+用户发来本地目录路径（如 `/Users/xxx/Desktop/jobs`）时：
+1. 用 Bash 验证目录存在：`ls "<路径>"` —— 若不存在，告知用户「目录不存在，请确认路径后重新发送。」并重新等待
+2. 用 Bash 列出该目录下的图片文件（**只读当前目录，不递归子目录**）：
+   ```bash
+   find "<路径>" -maxdepth 1 -type f \( -iname "*.png" -o -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.webp" \)
+   ```
+3. 若没有找到图片文件，告知用户「该目录下没有找到图片文件（支持 png/jpg/jpeg/webp），请确认后重新发送。」并重新等待
+4. 告知用户找到了哪些文件：「找到 <N> 张截图：<文件名列表>，开始解析。」
+5. 用 Read 工具逐张读取图片内容，汇总后进入下方「调用 fetcher」步骤
+
+**调用 fetcher：**
+
 1. 调用 Skill 工具，加载 `job-hunt-fetcher` skill，传入：
-   - `work_dir`：<解析好的绝对路径>
+   - `work_dir`：<data_dir 的值>
    - `run_id`：<当前 run_id>
    - `screenshots`：<本批次截图>
 2. fetcher 内部处理（含分组确认交互），完成后返回写入的 JD 文件 ID 列表
@@ -222,7 +270,7 @@ B. 先不改，用当前简历继续
 （全流程、analyze 子命令时执行）
 
 确定待分析 JD 列表：
-- 扫描 `<work_dir>/.work/jd-pool/` 下所有 `.md` 文件（排除 `.analysis.md` 结尾的文件）
+- 扫描 `<data_dir>/.work/jd-pool/` 下所有 `.md` 文件（排除 `.analysis.md` 结尾的文件）
 - 读取每个文件的 frontmatter，筛选 `status.analyzed: false` 的文件，提取其 `id` 字段
 - 排除 `state.json.stages.analysis_errors` 中已记录失败的 ID
 
@@ -230,7 +278,7 @@ B. 先不改，用当前简历继续
 
 调用 Skill 工具，加载 `job-hunt-analyzer` skill，传入：
 - `work_dir`：<绝对路径>
-- `resume_path`：`<work_dir>/.work/resume.md`
+- `resume_path`：`<data_dir>/.work/resume.md`
 - `jd_ids`：<待分析 JD ID 列表>
 - `preferences`：`{"soft_preferences": {"prefer_industries": [], "avoid_industries": [], "prefer_company_size": []}, "ranking": {"match_weight": 1.0, "preference_weight": 0.0}}`
 - `run_id`：<当前 run_id>
@@ -245,7 +293,7 @@ analyzer 返回后，更新 state.json `phase` 为 `"analyzed"`。
 
 （全流程或 tailor 子命令前执行，不调用 LLM）
 
-读取所有 analysis 文件（`<work_dir>/.work/jd-pool/*.analysis.md`），提取每个文件中的 `scores.total` 字段，按降序排列。
+读取所有 analysis 文件（`<data_dir>/.work/jd-pool/*.analysis.md`），提取每个文件中的 `scores.total` 字段，按降序排列。
 
 **所有已分析 JD 全部参与排序，不截断。**
 
@@ -259,14 +307,14 @@ analyzer 返回后，更新 state.json `phase` 为 `"analyzed"`。
 
 （全流程或 tailor 子命令时执行）
 
-检查 `<work_dir>/.work/resume.md` 是否存在，若不存在则执行 Step 2 获取简历流程后再继续。
+检查 `<data_dir>/.work/resume.md` 是否存在，若不存在则执行 Step 2 获取简历流程后再继续。
 
 取 Step 5 排序后的完整 JD ID 列表。
 排除 state.json 中已在 `stages.tailored` 的（断点续跑时跳过）。
 
 调用 Skill 工具，加载 `job-hunt-tailor` skill，传入：
 - `work_dir`：<绝对路径>
-- `resume_path`：`<work_dir>/.work/resume.md`
+- `resume_path`：`<data_dir>/.work/resume.md`
 - `jd_ids`：<完整排序后的 JD ID 列表>
 - `run_id`：<当前 run_id>
 
@@ -280,7 +328,7 @@ tailor 返回后，更新 state.json `phase` 为 `"tailored"`。
 
 （全流程最后一步）
 
-读取所有 analysis 文件和对应 JD frontmatter，生成 `<work_dir>/output/<run_id>/shortlist.md`，**同时在聊天消息中输出完整内容**：
+读取所有 analysis 文件和对应 JD frontmatter，生成 `<data_dir>/output/<run_id>/shortlist.md`，**同时在聊天消息中输出完整内容**：
 
 ```markdown
 # 求职 Shortlist · <run_id>
@@ -304,20 +352,20 @@ tailor 返回后，更新 state.json `phase` 为 `"tailored"`。
 ```
 
 更新 state.json `phase` 为 `"done"`。
-告知用户：「✅ 全部完成！shortlist 已保存到 <work_dir>/output/<run_id>/shortlist.md，并在上方展示。」
+告知用户：「✅ 全部完成！shortlist 已保存到 <data_dir>/output/<run_id>/shortlist.md，并在上方展示。」
 
 ---
 
 ## Step 7b（status 子命令）：输出运行状态
 
-扫描 `<work_dir>/output/` 下所有子目录，找名字格式为 `YYYY-MM-DD-HHMM` 的目录，读取最新一个的 `state.json`，按以下格式输出：
+扫描 `<data_dir>/output/` 下所有子目录，找名字格式为 `YYYY-MM-DD-HHMM` 的目录，读取最新一个的 `state.json`，按以下格式输出：
 
 ```
 Job-Hunt 状态报告
 ==================
 Run ID：<run_id>
 当前阶段：<phase>
-工作目录：<work_dir>
+工作目录：<data_dir>
 
 进度统计：
   已导入 JD：<stages.fetched 数量> 个
@@ -334,7 +382,7 @@ Run ID：<run_id>
 
 ## Step 8（clean 子命令）：强制清理
 
-删除 `<work_dir>/.work/jd-pool/` 下所有文件（含 .analysis.md）。
-删除 `<work_dir>/output/` 下所有 run 目录。
-删除 `<work_dir>/.work/resume.md`（若存在）。
+删除 `<data_dir>/.work/jd-pool/` 下所有文件（含 .analysis.md）。
+删除 `<data_dir>/output/` 下所有 run 目录。
+删除 `<data_dir>/.work/resume.md`（若存在）。
 统计并告知用户清理了多少文件/目录。
