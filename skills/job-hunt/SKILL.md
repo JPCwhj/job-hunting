@@ -293,9 +293,9 @@ B. 先不改，用当前简历继续
 - `preferences`：`{"soft_preferences": {"prefer_industries": [], "avoid_industries": [], "prefer_company_size": []}, "ranking": {"match_weight": 1.0, "preference_weight": 0.0}}`
 - `run_id`：<当前 run_id>
 
-analyzer 返回后，更新 state.json `phase` 为 `"analyzed"`。
+analyzer 返回后，用 Bash 工具更新 state.json `phase` 为 `"analyzed"`。
 
-**【全流程】不输出任何文本，立即执行 Step 5。**
+**【全流程】⚠️ 不得回显或复述 analyzer 的返回内容，state.json 更新完毕后立即执行 Step 5，不得有任何文字输出。**
 
 ---
 
@@ -328,9 +328,9 @@ analyzer 返回后，更新 state.json `phase` 为 `"analyzed"`。
 - `jd_ids`：<完整排序后的 JD ID 列表>
 - `run_id`：<当前 run_id>
 
-tailor 返回后，更新 state.json `phase` 为 `"tailored"`。
+tailor 返回后，用 Bash 工具更新 state.json `phase` 为 `"tailored"`。
 
-**【全流程】不输出任何文本，立即执行 Step 7。**
+**【全流程】⚠️ 不得回显或复述 tailor 的返回内容，state.json 更新完毕后立即执行 Step 7，不得有任何文字输出。**
 
 ---
 
