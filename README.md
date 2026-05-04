@@ -1,6 +1,6 @@
-# job-hunt · Claude Code Skill Suite
+# job-hunt · 求职助手 skill
 
-上传招聘平台的岗位截图，AI 自动解析 JD、匹配简历、生成定制简历和开场白，最后按匹配度排序输出 shortlist。
+上传招聘平台的岗位截图，AI 自动解析 JD、匹配简历、生成定制简历和开场白，最后按匹配度排序输出 shortlist（推荐列表）。
 
 > **定位**：效率工具，不是自动投递机器人。最终点击「立即沟通」由你来决定。
 
@@ -19,16 +19,20 @@
 ## 安装
 
 ```bash
-npx skills add JPCwhj/job-hunting
+npx skills add JPCwhj/job-hunting -g
 ```
-
-安装完成后，**无需重启 Claude Code**，skill 立即可用。
 
 ---
 
 ## 使用
 
-在任意目录启动 Claude Code，运行：
+**方式一**：在任意目录启动 Claude Code，运行：
+
+```
+/job-hunt
+```
+
+**方式二**：在 OpenClaw 对话窗口中，发送：
 
 ```
 /job-hunt
@@ -59,7 +63,8 @@ npx skills add JPCwhj/job-hunting
 ## 前置条件
 
 
-- [Claude Code](https://claude.ai/code) 已安装（或任何支持 Skill 规范的 Agent，如 OpenClaw）
+- [Claude Code](https://github.com/anthropics/claude-code) 已安装（或任何支持 Skill 规范的 Agent，如 OpenClaw）
+- 如果简历是 Word 文档，以 `.docx` 格式上传，请先安装 docx skill：`npx skills add https://skills.sh/anthropics/skills/docx -g`
 - 任意招聘平台（Boss直聘、智联招聘、前程无忧、猎聘、拉勾等），截取感兴趣的岗位详情页截图即可
 
 
