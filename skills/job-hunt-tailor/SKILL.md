@@ -51,7 +51,7 @@ description: Internal sub-skill for job-hunt suite. Performs STAR alignment anal
 - **Action 补充**：哪段经历的 Action 描述缺少 JD 强调的工作方式（如「跨团队协作」「数据驱动决策」），可在已有事实基础上补充？
 - **Result 缺口**：哪段经历缺少量化指标，需插入 `[请填写：xxx]` 占位？
 - **隐含信息**：哪段经历「显然蕴含」某 JD 关注点但未明说，可轻度补充（加 `[需用户确认]`）？
-- **弱化项**：哪段经历与 JD 相关性低，应后移或精简？
+- **弱化项**：哪段经历与 JD 相关性低，应后移或精简措辞？（只缩短文字，不删除条目）
 
 ### 1.1 生成 resume.md（定制简历）
 
@@ -63,7 +63,7 @@ description: Internal sub-skill for job-hunt suite. Performs STAR alignment anal
 4. 在对应位置插入 `[请填写：<描述>]`（缺量化数据处）
 5. 加 `[需用户确认]` 标注（轻度补充的隐含信息处）
 
-输出格式：完整 Markdown 简历，与主简历结构一致，只改内容不改结构。「结构」指：一级/二级标题名称及层次、各段落的存在与否（不增删段落）。经历排序调整属于内容改动，需在 changelog.md 的「顺序调整」节中注明。
+输出格式：完整 Markdown 简历，与主简历结构一致，只改内容不改结构。「结构」指：一级/二级标题名称及层次、各段落的存在与否（不增删段落）、**每段经历内的条目数（不得删减任何子条目）**。经历排序调整属于内容改动，需在 changelog.md 的「顺序调整」节中注明。
 
 写入 `<work_dir>/output/<run_id>/tailored/<id>/resume.md`。
 
