@@ -1,5 +1,9 @@
 # 求职助手 Skill Suite 设计文档
 
+> ⚠️ **此文档已废弃**（2026-05-02）
+> 本文档描述的是基于 bb-browser 主动爬取的旧方案，已被截图输入方案取代。
+> 当前有效设计文档：[2026-05-02-screenshot-input-design.md](./2026-05-02-screenshot-input-design.md)
+
 **日期**: 2026-04-29
 **形态**: Claude Code Skill Suite（1 主 + 3 子）
 **目标平台**: Boss 直聘（v1 仅此一家）
