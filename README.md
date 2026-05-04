@@ -1,12 +1,12 @@
 # job-hunt · 求职助手 skill
 
-上传招聘平台的岗位截图，AI 自动解析 JD、匹配简历、生成定制简历和开场白，最后按匹配度排序输出 shortlist（推荐列表）。
+上传招聘平台某一岗位详情页截图，AI 自动解析 JD、匹配简历、生成定制简历和开场白，最后按匹配度排序输出 shortlist（推荐列表）。
 
 > **定位**：效率工具，不是自动投递机器人。最终点击「立即沟通」由你来决定。
 
 ---
 
-## 它能做什么
+## 它能帮你做什么
 
 1. **评估简历质量**：上传简历后，AI 按行业实用标准（场景 + 行动 + 结果）逐段诊断，指出薄弱点并给出改写方向；你可以当场修改重传，也可以先跳过继续
 2. **解析 JD**：上传招聘平台详情页截图（Boss直聘、智联招聘、前程无忧、猎聘、拉勾等均可），AI 自动提取结构化信息（职位、薪资、要求、公司规模等）
@@ -16,7 +16,7 @@
 
 ---
 
-## 安装
+## 安装或更新
 
 ```bash
 npx skills add JPCwhj/job-hunting -g
@@ -24,7 +24,7 @@ npx skills add JPCwhj/job-hunting -g
 
 ---
 
-## 使用
+## 使用方式
 
 **方式一**：在任意目录启动 Claude Code，运行：
 
@@ -42,7 +42,7 @@ npx skills add JPCwhj/job-hunting -g
 1. 提供简历（发文件、告知路径，或直接粘贴文本）
 2. AI 自动评估简历质量，给出逐段建议；可选择修改后重传，或直接继续
 3. 上传招聘平台岗位详情页截图（可一次多张，也可分批发送）
-4. 告知「开始分析」，之后全自动完成匹配分析与简历定制
+4. 截图确认后自动进入匹配分析与简历定制，无需额外触发
 5. 查看 shortlist，回填占位符，手动投递
 
 **换简历重跑**：改完简历后运行 `/job-hunt analyze`，Step 2 会提示你发新简历，直接发过去即可替换，无需 clean。
@@ -64,7 +64,7 @@ npx skills add JPCwhj/job-hunting -g
 
 
 - [Claude Code](https://github.com/anthropics/claude-code) 已安装（或任何支持 Skill 规范的 Agent，如 OpenClaw）
-- 如果简历是 Word 文档，以 `.docx` 格式上传，请先安装 docx skill：`npx skills add https://skills.sh/anthropics/skills/docx -g`
+- 如果简历是 Word 文档，以 `.docx` 格式上传，请先安装 [docx skill](https://skills.sh/anthropics/skills/docx)：`npx skills add https://skills.sh/anthropics/skills/docx -g`
 - 任意招聘平台（Boss直聘、智联招聘、前程无忧、猎聘、拉勾等），截取感兴趣的岗位详情页截图即可
 
 
