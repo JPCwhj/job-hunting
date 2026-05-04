@@ -41,7 +41,7 @@ description: 求职助手主入口。上传招聘平台岗位详情页截图（B
 
 用 Bash 获取：`pwd`，将结果作为 `work_dir`。
 
-`data_dir` = `<work_dir>/jobHuntSkillData`（所有数据文件统一放在这一层目录下，不直接写入 `work_dir`）。
+`data_dir` = `<data_dir>/jobHuntSkillData`（所有数据文件统一放在这一层目录下，不直接写入 `work_dir`）。
 
 确保以下目录存在（用 Bash `mkdir -p` 创建）：
 ```
@@ -78,7 +78,7 @@ description: 求职助手主入口。上传招聘平台岗位详情页截图（B
 
 （全流程、fetch、analyze 子命令时执行）
 
-检查 `<work_dir>/.work/resume.md` 是否存在：
+检查 `<data_dir>/.work/resume.md` 是否存在：
 
 **若已存在**：告知用户：
 
@@ -104,7 +104,7 @@ description: 求职助手主入口。上传招聘平台岗位详情页截图（B
 - **文件路径（.md）**：用 Bash 读取文件内容
 - **粘贴文本**：直接使用该文本内容
 
-将最终 Markdown 内容写入 `<work_dir>/.work/resume.md`。
+将最终 Markdown 内容写入 `<data_dir>/.work/resume.md`。
 告知用户：「✅ 简历已保存。」
 
 进入 Step 2.5。
@@ -115,7 +115,7 @@ description: 求职助手主入口。上传招聘平台岗位详情页截图（B
 
 （仅在用户本次会话中新提供了简历时执行；复用缓存的直接跳到 Step 3）
 
-读取 `<work_dir>/.work/resume.md`，找出所有**可评估单元**，逐一打分，输出结果。
+读取 `<data_dir>/.work/resume.md`，找出所有**可评估单元**，逐一打分，输出结果。
 
 **三条判断规则，按顺序执行，全部满足才评估：**
 
@@ -244,7 +244,7 @@ B. 先不改，用当前简历继续
 （全流程、analyze 子命令时执行）
 
 确定待分析 JD 列表：
-- 扫描 `<work_dir>/.work/jd-pool/` 下所有 `.md` 文件（排除 `.analysis.md` 结尾的文件）
+- 扫描 `<data_dir>/.work/jd-pool/` 下所有 `.md` 文件（排除 `.analysis.md` 结尾的文件）
 - 读取每个文件的 frontmatter，筛选 `status.analyzed: false` 的文件，提取其 `id` 字段
 - 排除 `state.json.stages.analysis_errors` 中已记录失败的 ID
 
@@ -252,7 +252,7 @@ B. 先不改，用当前简历继续
 
 调用 Skill 工具，加载 `job-hunt-analyzer` skill，传入：
 - `work_dir`：<绝对路径>
-- `resume_path`：`<work_dir>/.work/resume.md`
+- `resume_path`：`<data_dir>/.work/resume.md`
 - `jd_ids`：<待分析 JD ID 列表>
 - `preferences`：`{"soft_preferences": {"prefer_industries": [], "avoid_industries": [], "prefer_company_size": []}, "ranking": {"match_weight": 1.0, "preference_weight": 0.0}}`
 - `run_id`：<当前 run_id>
@@ -267,7 +267,7 @@ analyzer 返回后，更新 state.json `phase` 为 `"analyzed"`。
 
 （全流程或 tailor 子命令前执行，不调用 LLM）
 
-读取所有 analysis 文件（`<work_dir>/.work/jd-pool/*.analysis.md`），提取每个文件中的 `scores.total` 字段，按降序排列。
+读取所有 analysis 文件（`<data_dir>/.work/jd-pool/*.analysis.md`），提取每个文件中的 `scores.total` 字段，按降序排列。
 
 **所有已分析 JD 全部参与排序，不截断。**
 
@@ -281,14 +281,14 @@ analyzer 返回后，更新 state.json `phase` 为 `"analyzed"`。
 
 （全流程或 tailor 子命令时执行）
 
-检查 `<work_dir>/.work/resume.md` 是否存在，若不存在则执行 Step 2 获取简历流程后再继续。
+检查 `<data_dir>/.work/resume.md` 是否存在，若不存在则执行 Step 2 获取简历流程后再继续。
 
 取 Step 5 排序后的完整 JD ID 列表。
 排除 state.json 中已在 `stages.tailored` 的（断点续跑时跳过）。
 
 调用 Skill 工具，加载 `job-hunt-tailor` skill，传入：
 - `work_dir`：<绝对路径>
-- `resume_path`：`<work_dir>/.work/resume.md`
+- `resume_path`：`<data_dir>/.work/resume.md`
 - `jd_ids`：<完整排序后的 JD ID 列表>
 - `run_id`：<当前 run_id>
 
@@ -302,7 +302,7 @@ tailor 返回后，更新 state.json `phase` 为 `"tailored"`。
 
 （全流程最后一步）
 
-读取所有 analysis 文件和对应 JD frontmatter，生成 `<work_dir>/output/<run_id>/shortlist.md`，**同时在聊天消息中输出完整内容**：
+读取所有 analysis 文件和对应 JD frontmatter，生成 `<data_dir>/output/<run_id>/shortlist.md`，**同时在聊天消息中输出完整内容**：
 
 ```markdown
 # 求职 Shortlist · <run_id>
@@ -326,20 +326,20 @@ tailor 返回后，更新 state.json `phase` 为 `"tailored"`。
 ```
 
 更新 state.json `phase` 为 `"done"`。
-告知用户：「✅ 全部完成！shortlist 已保存到 <work_dir>/output/<run_id>/shortlist.md，并在上方展示。」
+告知用户：「✅ 全部完成！shortlist 已保存到 <data_dir>/output/<run_id>/shortlist.md，并在上方展示。」
 
 ---
 
 ## Step 7b（status 子命令）：输出运行状态
 
-扫描 `<work_dir>/output/` 下所有子目录，找名字格式为 `YYYY-MM-DD-HHMM` 的目录，读取最新一个的 `state.json`，按以下格式输出：
+扫描 `<data_dir>/output/` 下所有子目录，找名字格式为 `YYYY-MM-DD-HHMM` 的目录，读取最新一个的 `state.json`，按以下格式输出：
 
 ```
 Job-Hunt 状态报告
 ==================
 Run ID：<run_id>
 当前阶段：<phase>
-工作目录：<work_dir>
+工作目录：<data_dir>
 
 进度统计：
   已导入 JD：<stages.fetched 数量> 个
@@ -356,7 +356,7 @@ Run ID：<run_id>
 
 ## Step 8（clean 子命令）：强制清理
 
-删除 `<work_dir>/.work/jd-pool/` 下所有文件（含 .analysis.md）。
-删除 `<work_dir>/output/` 下所有 run 目录。
-删除 `<work_dir>/.work/resume.md`（若存在）。
+删除 `<data_dir>/.work/jd-pool/` 下所有文件（含 .analysis.md）。
+删除 `<data_dir>/output/` 下所有 run 目录。
+删除 `<data_dir>/.work/resume.md`（若存在）。
 统计并告知用户清理了多少文件/目录。
