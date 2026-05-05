@@ -17,8 +17,17 @@ Screenshot any job listing page, AI parses the JD, runs a deep comparison agains
 1. **Resume quality check**: Upload your resume and AI diagnoses each section using industry-standard criteria (Situation + Action + Result), highlights weak spots, and suggests improvements. You can revise and re-upload, or skip and continue.
 2. **JD parsing**: Upload screenshots of job listing pages from any major hiring platform. AI extracts structured data — title, salary, requirements, company size, etc.
 3. **Match analysis**: Aligns each JD with your resume using STAR framework, outputting scores across 4 dimensions: Hard Skills / Experience Depth / Domain Fit / Soft Skills.
-4. **Tailored materials**: Generates a customized resume + opening message + change log for each position.
+4. **Tailored materials**: Re-focuses your resume for each JD — moves the most relevant experience to the top, sharpens match points, so the HR reading it can immediately see you fit the role. Comes with an opening message + change log.
 5. **Shortlist output**: All positions ranked by match score, highest first.
+
+---
+
+## What It Won't Do
+
+- **No fabricated experience**: Won't add projects, skills, or jobs that aren't already in your resume
+- **No made-up numbers**: Where quantified results are missing, inserts a `[fill in: xxx]` placeholder — never invents user counts, growth rates, or revenue figures
+- **No changes to key facts**: Employment dates, job titles, and company names stay untouched
+- **No hidden edits**: Every change is logged in `changelog.md` — what was changed and why, for your review
 
 ---
 
@@ -111,7 +120,6 @@ npx skills add JPCwhj/job-hunting -g
 - **Works with all major hiring platforms**: any screenshot containing company name, job title, and JD is sufficient
 - **No auto-apply**: eliminates account ban risk
 - **No plugins or extensions required**: you screenshot, AI parses — no browser extensions or MCP tools needed
-- **Ethical resume rewriting**: only rewrites wording and structure; never fabricates experience; invented numbers must use `[fill in: xxx]` placeholders; every change is logged in `changelog.md` for your review
 
 ---
 
