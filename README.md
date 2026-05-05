@@ -2,6 +2,8 @@
 
 [English](README.en.md)
 
+作者：[抖音](https://www.douyin.com/user/MS4wLjABAAAAWo2xyaSERZ6A7j3Ln09ZOlLCaRV8r1dazBzzckknKbqcIXdARqfOV11SZAeJapEM) · [小红书](https://www.xiaohongshu.com/user/profile/62a1d0dd000000001b029ddd)
+
 **简历投出去没动静？问题可能不是你不够好，是你的简历没对上那个 JD。**
 
 HR 扫一眼的时间不到 10 秒——**简历和 JD 的匹配度，才是能不能过初筛的关键。**

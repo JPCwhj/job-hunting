@@ -2,6 +2,8 @@
 
 [中文](README.md)
 
+Author: [Douyin](https://www.douyin.com/user/MS4wLjABAAAAWo2xyaSERZ6A7j3Ln09ZOlLCaRV8r1dazBzzckknKbqcIXdARqfOV11SZAeJapEM) · [Xiaohongshu](https://www.xiaohongshu.com/user/profile/62a1d0dd000000001b029ddd)
+
 **Sent out resumes but heard nothing back? The problem might not be you — it might be that your resume didn't speak to the JD.**
 
 HR spends less than 10 seconds scanning a resume — **and how well your resume matches the JD is what actually determines whether you pass the first cut.**
