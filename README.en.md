@@ -2,9 +2,13 @@
 
 [中文](README.md)
 
-Screenshot any job listing from any hiring platform. AI parses the JD, matches it against your resume, generates tailored application materials, and ranks all positions by match score into a shortlist.
+**Sent out resumes but heard nothing back? The problem might not be you — it might be that your resume didn't speak to the JD.**
 
-> **What it is**: A productivity tool, not an auto-apply bot. You decide when to hit "Apply".
+HR spends less than 10 seconds scanning a resume — **and how well your resume matches the JD is what actually determines whether you pass the first cut.**
+
+Screenshot any job listing page, AI parses the JD, runs a deep comparison against your resume, generates a tailored resume + HR opener + change log just for this role, then ranks everything by match score into your shortlist.
+
+> You decide who to apply to. AI gets every application ready.
 
 ---
 
