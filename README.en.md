@@ -80,7 +80,7 @@ npx skills add JPCwhj/job-hunting -g
 
 - **Your AI model must support vision (image recognition)**
 - [Claude Code](https://github.com/anthropics/claude-code) installed, or any agent that supports the Skill spec (e.g. Codex, OpenClaw)
-- If your resume is a Word document, upload it as `.docx` and install [docx skill](https://skills.sh/anthropics/skills/docx) first
+- If your resume is a Word document (`.docx` or `.doc`), install [docx skill](https://skills.sh/anthropics/skills/docx) first
 - Any hiring platform — just screenshot the job detail page
 
 ---
