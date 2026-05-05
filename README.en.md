@@ -1,4 +1,4 @@
-# job-hunt · Job Search Assistant Skill
+# job-hunt · Resume Radar - Job Search Assistant Skill
 
 [中文](README.md)
 
